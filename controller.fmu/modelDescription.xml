@@ -12,28 +12,28 @@
 
 
   <ModelVariables>
-    <!--Index of variable = "0"-->
+    <!--Index of variable = "1"-->
     <ScalarVariable name="desired_velocity" valueReference="0" variability="fixed" causality="parameter">
       <Real start = "0.0"/>
     </ScalarVariable>
-    <!--Index of variable = "1"-->
+    <!--Index of variable = "2"-->
     <ScalarVariable name="desired_angle" valueReference="1" variability="fixed" causality="parameter">
       <Real start = "0.0"/>
     </ScalarVariable>
-    <!--Index of variable = "2"-->
+    <!--Index of variable = "3"-->
     <ScalarVariable name="velocity" valueReference="2" variability="discrete" causality="input">
       <Real start ="0.0" />
     </ScalarVariable>
-    <!--Index of variable = "3"-->
+    <!--Index of variable = "4"-->
     <ScalarVariable name="steer_angle" valueReference="3" variability="discrete" causality="input">
       <Real start ="0.0" />
     </ScalarVariable>
-    <!--Index of variable = "4"-->
-    <ScalarVariable name="output_acceleration" valueReference="4" variability="discrete" causality="output" initial="approx">
+    <!--Index of variable = "5"-->
+    <ScalarVariable name="acceleration" valueReference="4" variability="discrete" causality="output" initial="approx">
       <Real start ="0.0" />
     </ScalarVariable>
-    <!--Index of variable = "5"-->
-    <ScalarVariable name="output_steer_angle_vel" valueReference="5" variability="discrete" causality="output" initial="approx">
+    <!--Index of variable = "6"-->
+    <ScalarVariable name="steer_angle_vel" valueReference="5" variability="discrete" causality="output" initial="approx">
       <Real start="0.0" />
     </ScalarVariable>
   </ModelVariables>
@@ -41,8 +41,8 @@
 
   <ModelStructure>
     <Outputs>
-      <Unknown index="4" dependencies="" />
       <Unknown index="5" dependencies="" />
+      <Unknown index="6" dependencies="" />
     </Outputs>
   </ModelStructure>
 </fmiModelDescription>

@@ -55,85 +55,80 @@ if __name__ == "__main__":
         if group == "Fmi2SetupExperiment":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2SetupExperiment(
-                data.start_time, data.stop_time, data.tolerance
-            )
+                data.start_time, data.stop_time, data.tolerance)
 
         elif group == "Fmi2SetDebugLogging":
             result = Fmi2StatusReturn()
             result.status = slave.fmiSetDebugLogging(
-                data.categores, data.logging_on
-            )
+                data.categores, data.logging_on)
 
         elif group == "Fmi2DoStep":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2DoStep(
-                data.current_time, data.step_size, data.no_step_prior
-            )
+                data.current_time, data.step_size, data.no_step_prior)
+        
         elif group == "Fmi2EnterInitializationMode":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2EnterInitializationMode()
+        
         elif group == "Fmi2ExitInitializationMode":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2ExitInitializationMode()
-        elif group == "Fmi2ExtSerializeSlave":
-            result = Fmi2ExtSerializeSlaveReturn()
-            (result.status, result.state) = slave.fmi2ExtSerialize()
-        elif group == "Fmi2ExtDeserializeSlave":
-            result = Fmi2StatusReturn()
-            result.status = slave.fmi2ExtDeserialize(data.state)
+        
         elif group == "Fmi2GetReal":
             result = Fmi2GetRealReturn()
             result.status, result.values[:] = slave.fmi2GetReal(
-                command.Fmi2GetReal.references
-            )
+                command.Fmi2GetReal.references)
+
         elif group == "Fmi2GetInteger":
             result = Fmi2GetIntegerReturn()
             result.status, result.values[:] = slave.fmi2GetInteger(
-                command.Fmi2GetInteger.references
-            )
+                command.Fmi2GetInteger.references)
+
         elif group == "Fmi2GetBoolean":
             result = Fmi2GetBooleanReturn()
             result.status, result.values[:] = slave.fmi2GetBoolean(
-                command.Fmi2GetBoolean.references
-            )
+                command.Fmi2GetBoolean.references)
+
         elif group == "Fmi2GetString":
             result = Fmi2GetStringReturn()
             result.status, result.values[:] = slave.fmi2GetString(
-                command.Fmi2GetString.references
-            )
+                command.Fmi2GetString.references)
+
         elif group == "Fmi2SetReal":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2SetReal(
-                command.Fmi2SetReal.references, command.Fmi2SetReal.values
-            )
+                command.Fmi2SetReal.references, command.Fmi2SetReal.values)
 
         elif group == "Fmi2SetInteger":
             result = Fmi2StatusReturn()
 
             result.status = slave.fmi2SetInteger(
-                command.Fmi2SetInteger.references, command.Fmi2SetInteger.values
-            )
+                command.Fmi2SetInteger.references, command.Fmi2SetInteger.values)
 
         elif group == "Fmi2SetBoolean":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2SetBoolean(
-                command.Fmi2SetBoolean.references, command.Fmi2SetBoolean.values
-            )
+                command.Fmi2SetBoolean.references, command.Fmi2SetBoolean.values)
+
         elif group == "Fmi2SetString":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2SetString(
-                command.Fmi2SetString.references, command.Fmi2SetString.values
-            )
+                command.Fmi2SetString.references, command.Fmi2SetString.values)
+
         elif group == "Fmi2Terminate":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2Terminate()
+
         elif group == "Fmi2Reset":
             result = Fmi2StatusReturn()
             result.status = slave.fmi2Reset()
+
         elif group == "Fmi2FreeInstance":
             result = Fmi2FreeInstanceReturn()
             logger.info(f"Fmi2FreeInstance received, shutting down")
             sys.exit(0)
+            
         else:
             logger.error(f"unrecognized command '{group}' received, shutting down")
             sys.exit(-1)

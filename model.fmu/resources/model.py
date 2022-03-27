@@ -37,34 +37,125 @@ class Model:
         self.st_dyn = False
         self.velocity = 0.0         #output
         self.steer_angle = 0.0      #output
-    
-        
+
+        #list to hold output variables
+        self.outputs = []
 
         self.reference_to_attribute = {
             0: "threshold",
             1: "error", 
-            3: "acceleration",           
-            4: "steer_angle_vel",
-            5: "velocity",
-            6: "steer_angle",
+            2: "acceleration",           
+            3: "steer_angle_vel",
+            4: "velocity",
+            5: "steer_angle",
         }
 
+        #references to the inputs and outputs 
+        self.references_input = [2, 3]
+        self.references_output = [4, 5]
 
-    #------process in time------
+        #getting the values 
+        input = self.fmi2GetReal(self.references_input)
+
+        self.acceleration = input[1][0]
+        self.steer_angle_vel = input[1][1]
+
+        print("Model")
+        print(self.acceleration)
+        print(self.steer_angle_vel)
+        
+
+  #getting the values 
+        input = self.fmi2GetReal(self.references_input)
+
+        self.velocity = input[1][0]
+        self.steer_angle = input[1][1]
+
+        print(self.velocity)
+        print(self.steer_angle)
+
+
+    
+    #------PROCESS IN TIME------ 
     def fmi2DoStep(self, current_time, step_size, no_step_prior):
-
-        #if velocity is low or negative, use ormal kinematic single track dynamics 
+        #if velocity is low or negative, use normal kinematic single track dynamics 
         if self.velocity < self.threshold:
             self.update_k(step_size)
         
         else:
             self.update(step_size)
+        
+        #updating the output values
+        self.fmi2SetReal(self.references_output, self.outputs)
+
+        return Fmi2Status.ok
+
+
+    #------INITIALIZATION------ 
+    def fmi2EnterInitializationMode(self):
+        return Fmi2Status.ok
+
+    def fmi2ExitInitializationMode(self):
+        return Fmi2Status.ok
+
+
+    #------SETUP EXPERIMENT------ 
+    def fmi2SetupExperiment(self, start_time, stop_time, tolerance):
+        return Fmi2Status.ok
+    
+    def fmi2Reset(self):
+        return Fmi2Status.ok
+
+    def fmi2Terminate(self):
+        return Fmi2Status.ok
+
+
+    #------SETTERS------ 
+    def fmi2SetReal(self, references, values):
+        return self._set_value(references, values)
+
+    def fmi2SetInteger(self, references, values):
+        return self._set_value(references, values)
+
+    def fmi2SetBoolean(self, references, values):
+        return self._set_value(references, values)
+
+    def fmi2SetString(self, references, values):
+        return self._set_value(references, values)
+    
+    def _set_value(self, references, values):
+
+        for r, v in zip(references, values):
+            setattr(self, self.reference_to_attribute[r], v)
 
         return Fmi2Status.ok
     
 
+    #------GETTERS------ 
+    def fmi2GetReal(self, references):
+        return self._get_value(references)
 
-    #------update state------
+    def fmi2GetInteger(self, references):
+        return self._get_value(references)
+
+    def fmi2GetBoolean(self, references):
+        return self._get_value(references)
+
+    def fmi2GetString(self, references):
+        return self._get_value(references)
+    
+    def _get_value(self, references):
+
+        values = []
+
+        for r in references:
+            values.append(getattr(self, self.reference_to_attribute[r]))
+
+        return Fmi2Status.ok, values
+
+
+    
+    #------UPDATING THE STATE------
     def update(self, step_size):
 
         #computing first derivatives of the state
@@ -112,9 +203,14 @@ class Model:
         self.angular_velocity = self.angular_velocity + theta_double_dot * step_size
         self.slip_angle = self.slip_angle + slip_angle_dot * step_size
         self.st_dyn = True
+
+        #updating the output 
+        self.outputs.append(self.velocity)
+        self.outputs.append(self.steer_angle)
+
         
     
-
+    #------normal kinematic------
     def update_k(self, step_size):
         #computing first derivative of state
         x_dot = self.velocity * math.cos(self.theta)
@@ -137,50 +233,11 @@ class Model:
         self.slip_angle = 0            #start.slip_angle + slip_angle_dot * dt;
         self.st_dyn = False
 
+        #updating the output 
+        self.outputs.append(self.velocity)
+        self.outputs.append(self.steer_angle)
 
 
-"""
-#------serializing and deserializing the state------
-    def fmi2ExtSerialize(self):
-
-        CarState = pickle.dumps(
-            (
-                self.x,
-                self.y,
-                self.theta,
-                self.velocity,
-                self.steer_angle,
-                self.angular_velocity,
-                self.slip_angle,
-                self.st_dyn,
-            )
-        )
-        return Fmi2Status.ok, CarState
-
-
-    def fmi2ExtDeserialize(self, CarState) -> int:
-        (
-            x,
-            y,
-            theta,
-            velocity,
-            steer_angle,
-            angular_velocity,
-            slip_angle,
-            st_dyn
-        ) = pickle.loads(CarState)
-
-        self.x = x
-        self.y = y
-        self.theta = theta
-        self.velocity = velocity
-        self.steer_angle = steer_angle
-        self.angular_velocity = angular_velocity
-        self.slip_angle = slip_angle
-        self.st_dyn = st_dyn
-
-        return Fmi2Status.ok
-"""
 
 
 #------Represents the status of the FMU or the results of function calls------
@@ -208,7 +265,8 @@ class Fmi2Status:
 
 
 
-#------Test case------
+#------TEST CASES------
+"""
 if __name__ == "__main__":
     m = Model()
     m.acceleration = 3.0
@@ -223,7 +281,7 @@ if __name__ == "__main__":
     print(m.slip_angle)
     print(m.velocity)
     print(m.steer_angle)
-
+"""
 
 
 """

@@ -17,60 +17,122 @@ class Controller:
         self.desired_velocity = 0.0
         self.desired_angle = 0.0
 
-        self.kp = 0.0       #proportional gain 
+        self.kp_speed = 0.5       #speed proportional gain
+        self.kp_angle = 0.5       #angle proportional gain 
 
         #inputs 
         self.velocity = 0.0
         self.steer_angle = 0.0 
 
-        #other variables
-        self.previous_time = 0.0 
-        self.actual_ang = 0.0      
-
+        #outputs 
+        self.outputs = []         #list to hold the output variables
+        self.acceleration = 0.0 
+        self.steer_angle_vel = 0.0
 
         #reference to xml file 
         self.reference_to_attribute = {
             0: "desired_velocity",
             1: "desired_angle", 
-            2: "kp",
-            3: "velocity",
-            4: "steer_angle",
-            5: "output_acceleration",
-            6: "output_steer_angle_vel",
+            2: "velocity",
+            3: "steer_angle",
+            4: "acceleration",
+            5: "steer_angle_vel",
         }
 
+        #references to the inputs and outputs 
+        self.references_input = [2, 3]
+        self.references_output = [4, 5]
+
+        #getting the values 
+        input = self.fmi2GetReal(self.references_input)
+
+        self.velocity = input[1][0]
+        self.steer_angle = input[1][1]
+
+        print("Controller")
+        print(self.velocity)
+        print(self.steer_angle)
+
     
-    #------progress in time------ 
+    #------PROCESS IN TIME------ 
     def fmi2DoStep(self, current_time, step_size, no_step_prior):
-
         self.control_speed_and_angle()
-        
+        return Fmi2Status.ok
+
+
+    #------INITIALIZATION------ 
+    def fmi2EnterInitializationMode(self):
+        return Fmi2Status.ok
+
+    def fmi2ExitInitializationMode(self):
+        return Fmi2Status.ok
+
+
+    #------SETUP EXPERIMENT------ 
+    def fmi2SetupExperiment(self, start_time, stop_time, tolerance):
         return Fmi2Status.ok
     
+    def fmi2Reset(self):
+        return Fmi2Status.ok
 
-    #------controller logic------
-    def control_speed_and_angle(self):
-        
-        #calculating and setting the new acceleration 
-        self.compute_accel()
-
-        #compute and setting new steer angular velocity 
-        if self.actual_ang != 0.0:
-            self.actual_ang = 0.0
-        else:
-            self.actual_ang = self.desired_angle
-        
-        self.compute_steer_vel()
-
-
+    def fmi2Terminate(self):
         return Fmi2Status.ok
 
 
-    #------setters and getters------
+    #------SETTERS------ 
     def fmi2SetReal(self, references, values):
         return self._set_value(references, values)
 
+    def fmi2SetInteger(self, references, values):
+        return self._set_value(references, values)
 
+    def fmi2SetBoolean(self, references, values):
+        return self._set_value(references, values)
+
+    def fmi2SetString(self, references, values):
+        return self._set_value(references, values)
+    
+    def _set_value(self, references, values):
+
+        for r, v in zip(references, values):
+            setattr(self, self.reference_to_attribute[r], v)
+
+        return Fmi2Status.ok
+    
+
+    #------GETTERS------ 
+    def fmi2GetReal(self, references):
+        return self._get_value(references)
+
+    def fmi2GetInteger(self, references):
+        return self._get_value(references)
+
+    def fmi2GetBoolean(self, references):
+        return self._get_value(references)
+
+    def fmi2GetString(self, references):
+        return self._get_value(references)
+    
+    def _get_value(self, references):
+
+        values = []
+
+        for r in references:
+            values.append(getattr(self, self.reference_to_attribute[r]))
+
+        return Fmi2Status.ok, values
+
+
+    #------CONTROLLER LOGIC------
+    def control_speed_and_angle(self):
+        #calculating and setting the new acceleration 
+        self.compute_accel()
+        self.compute_steer_vel()
+
+        #setting the output values 
+        self.fmi2SetReal(self.references_output, self.outputs)
+
+        return Fmi2Status.ok
     
 
     #------acceleration ------ 
@@ -82,30 +144,32 @@ class Controller:
         if self.velocity > 0:
             if diff > 0:
                 #accelerate
-                self.set_accel(self.kp * diff)
+                self.set_accel(self.kp_speed * diff)
 
             else:
                 #brake
-                self.output_acceleration = -self.max_decel
+                self.acceleration = -self.max_decel
         
         elif self.velocity < 0:
             if diff > 0:
                 #brake
-                self.output_acceleration = self.max_decel
+                self.acceleration = self.max_decel
             
             else:
                 #acceleration
-                self.set_accel(self.kp * diff)
+                self.set_accel(self.kp_speed * diff)
         
         else:
             #acceleration 
-            self.set_accel(self.kp * diff)
+            self.set_accel(self.kp_speed * diff)
+        
+        #inserting the acceleration into output list
+        self.outputs.append(self.acceleration)
 
 
     def set_accel(self, accel):
-        self.output_acceleration = min(max(accel, -self.max_accel), self.max_accel)
-
-
+        self.acceleration = min(max(accel, -self.max_accel), self.max_accel)
+    
 
     #------angle velocity------
     def compute_steer_vel(self):
@@ -114,38 +178,21 @@ class Controller:
         
         # calculate velocity
         if (abs(diff_angle) > .0001):  # if the difference is not trivial
-            self.steer_vel = diff_angle / abs(diff_angle) * self.max_steering_vel
+            self.steer_vel = diff_angle * self.kp_angle
         else:
             self.steer_vel = 0
 
         self.set_steer_angle_vel(self.steer_vel)
 
+        #inserting the angle velocity into output list
+        self.outputs.append(self.set_steer_angle_vel)
+
 
     def set_steer_angle_vel(self, steer_angle_vel):
-        self.output_steer_angle_vel = min(max(steer_angle_vel, -self.max_steering_vel), self.max_steering_vel)
+        self.steer_angle_vel = min(max(steer_angle_vel, -self.max_steering_vel), self.max_steering_vel)
 
 
 
-    #------ serialize/deserialize????------
-    """def fmi2ExtSerialize(self):
-
-        bytes = pickle.dumps(
-            (
-                self.controller_input,
-            )
-        )
-        return Fmi2Status.ok, bytes
-
-
-    def fmi2ExtDeserialize(self, bytes) -> int:
-        (
-            controller_input,
-        ) = pickle.loads(bytes)
-
-        self.controller_input = controller_input
-
-        return Fmi2Status.ok
-    """
 
 
 
@@ -173,6 +220,8 @@ class Fmi2Status:
     pending = 5
 
 
+#------TEST CASES------
+"""
 if __name__ == "__main__":
     m = Controller()
 
@@ -184,13 +233,11 @@ if __name__ == "__main__":
     m.velocity = 2.0
     m.steer_angle = 0.1
 
-    #do steo
+    #do step
     m.fmi2DoStep(0.0, 1.0, False)
 
 
     #outputs
     print(m.output_acceleration)
     print(m.output_steer_angle_vel)
-    print(m.previous_time)
-
-    
+"""
