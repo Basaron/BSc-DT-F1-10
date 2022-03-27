@@ -13,11 +13,11 @@
 
   <ModelVariables>
     <!--Index of variable = "1"-->
-    <ScalarVariable name="first_input" valueReference="0" variability="discrete" causality="input">
+    <ScalarVariable name="a" valueReference="0" variability="discrete" causality="input">
       <Real start="0.0" />
     </ScalarVariable>
     <!--Index of variable = "2"-->
-    <ScalarVariable name="first_output" valueReference="1" variability="discrete" causality="output" initial="calculated">
+    <ScalarVariable name="b" valueReference="1" variability="discrete" causality="output" initial="calculated">
       <Real />
     </ScalarVariable>
   </ModelVariables>

@@ -3,18 +3,18 @@ import pickle
 
 class Output:
     def __init__(self) -> None:
-        self.second_input = 0.0
-     
+        self.b = 0.0
+        self.a = 0.0
 
         self.reference_to_attribute = {
-            0: "second_input",
-            1: "second_output",
+            0: "b",
+            1: "a",
         }
 
         self.references_input = [0]
         self.refences_output = [1]
 
-        self.second_input = self.fmi2GetReal(self.references_input)
+        self.b = self.fmi2GetReal(self.references_input)
 
     def fmi2DoStep(self, current_time, step_size, no_step_prior):
         self._update_outputs()
@@ -61,14 +61,14 @@ class Output:
 
 
     def _update_outputs(self):
-        output = self.second_input + 0.5
-        self.second_output = []
-        self.second_output.append(output)
+        output = self.b + 0.5
+        self.a = []
+        self.a.append(output)
 
-        print(self.second_output)
+        print(self.a)
         print(self.refences_output[0])
 
-        self.fmi2SetReal(self.refences_output, self.second_output)
+        self.fmi2SetReal(self.refences_output, self.a)
 
 
 class Fmi2Status:
