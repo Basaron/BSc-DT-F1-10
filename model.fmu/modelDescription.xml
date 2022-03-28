@@ -44,7 +44,6 @@
     <ScalarVariable name="y" valueReference="7" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
-  
   </ModelVariables>
 
   <ModelStructure>

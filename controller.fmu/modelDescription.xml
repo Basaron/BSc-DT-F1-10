@@ -36,6 +36,14 @@
     <ScalarVariable name="steer_angle_vel" valueReference="5" variability="discrete" causality="output" initial="approx">
       <Real start="0.0" />
     </ScalarVariable>
+    <!--Index of variable = "7"-->
+    <ScalarVariable name="kp_speed" valueReference="6" variability="fixed" causality="parameter" initial="exact">
+      <Real start="0.5" />
+    </ScalarVariable>
+    <!--Index of variable = "8"-->
+    <ScalarVariable name="kp_angle" valueReference="7" variability="fixed" causality="parameter" initial="exact">
+      <Real start="0.5" />
+    </ScalarVariable>
   </ModelVariables>
 
 

@@ -29,7 +29,7 @@ class Model:
         self.steer_angle_vel = 0.0 
 
         #car state variables
-        self.x = 0.0
+        self.x = 0.0                #coordinates x and y is defined as output in order to track the position 
         self.y = 0.0
         self.theta = 0.0
         self.angular_velocity = 0.0
@@ -38,8 +38,6 @@ class Model:
         self.velocity = 0.0         #output
         self.steer_angle = 0.0      #output
 
-        #list to hold output variables
-        self.outputs = []
 
         self.reference_to_attribute = {
             0: "threshold",
@@ -48,6 +46,8 @@ class Model:
             3: "steer_angle_vel",
             4: "velocity",
             5: "steer_angle",
+            6: "x",
+            7: "y",
         }
 
         #references to the inputs and outputs 
@@ -59,21 +59,6 @@ class Model:
 
         self.acceleration = input[1][0]
         self.steer_angle_vel = input[1][1]
-
-        print("Model")
-        print(self.acceleration)
-        print(self.steer_angle_vel)
-        
-
-  #getting the values 
-        input = self.fmi2GetReal(self.references_input)
-
-        self.velocity = input[1][0]
-        self.steer_angle = input[1][1]
-
-        print(self.velocity)
-        print(self.steer_angle)
-
 
     
     #------PROCESS IN TIME------ 
@@ -245,10 +230,8 @@ class Fmi2Status:
         * error: an error has ocurred for this specific FMU instance.
         * fatal: an fatal error has ocurred which has corrupted ALL FMU instances.
         * pending: indicates that the FMu is doing work asynchronously, which can be retrived later.
-
     Notes:
         FMI section 2.1.3
-
     """
 
     ok = 0
@@ -266,9 +249,7 @@ if __name__ == "__main__":
     m = Model()
     m.acceleration = 3.0
     m.steer_angle_vel = 0.4
-
     m.fmi2DoStep(0.0, 4.0, False)
-
     print(m.x)
     print(m.y)
     print(m.theta)
@@ -276,14 +257,4 @@ if __name__ == "__main__":
     print(m.slip_angle)
     print(m.velocity)
     print(m.steer_angle)
-"""
-
-
-"""
-Find ud af:
-- Hvordan tid kommer ind 
-- GetValue, References? 
-- Velocity: input/output, opdatering af værdi? 
-- deltaTime / stepsize / currentTime / previousTime? 
-- Kig slides / overture kode 
 """

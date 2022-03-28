@@ -25,7 +25,6 @@ class Controller:
         self.steer_angle = 0.0 
 
         #outputs 
-        self.outputs = []         #list to hold the output variables
         self.acceleration = 0.0 
         self.steer_angle_vel = 0.0
 
@@ -37,6 +36,8 @@ class Controller:
             3: "steer_angle",
             4: "acceleration",
             5: "steer_angle_vel",
+            6: "kp_speed",
+            7: "kp_angle",
         }
 
         #references to the inputs and outputs 
@@ -45,13 +46,10 @@ class Controller:
 
         #getting the values 
         input = self.fmi2GetReal(self.references_input)
-        
+
         self.velocity = input[1][0]
         self.steer_angle = input[1][1]
 
-        print("Controller")
-        print(self.velocity)
-        print(self.steer_angle)
 
     
     #------PROCESS IN TIME------ 
@@ -199,7 +197,6 @@ class Controller:
 
 class Fmi2Status:
     """Represents the status of the FMU or the results of function calls.
-
     Values:
         * ok: all well
         * warning: an issue has arisen, but the computation can continue.
@@ -207,10 +204,8 @@ class Fmi2Status:
         * error: an error has ocurred for this specific FMU instance.
         * fatal: an fatal error has ocurred which has corrupted ALL FMU instances.
         * pending: indicates that the FMu is doing work asynchronously, which can be retrived later.
-
     Notes:
         FMI section 2.1.3
-
     """
 
     ok = 0
@@ -225,19 +220,14 @@ class Fmi2Status:
 """
 if __name__ == "__main__":
     m = Controller()
-
     #parameters
     m.desired_velocity = 4.5
     m.desired_angle = 0.2
-
     #inputs
     m.velocity = 2.0
     m.steer_angle = 0.1
-
     #do step
     m.fmi2DoStep(0.0, 1.0, False)
-
-
     #outputs
     print(m.output_acceleration)
     print(m.output_steer_angle_vel)
