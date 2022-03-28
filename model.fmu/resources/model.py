@@ -86,7 +86,7 @@ class Model:
             self.update(step_size)
         
         #updating the output values
-        self.fmi2SetReal(self.references_output, self.outputs)
+        self.fmi2SetReal(self.references_output, (self.velocity, self.steer_angle, self.x, self.y))
 
         return Fmi2Status.ok
 
@@ -198,15 +198,12 @@ class Model:
         self.x = self.x + x_dot * step_size
         self.y = self.y + y_dot * step_size
         self.theta = self.theta + theta_dot * step_size
-        self.velocity = self.velocity + self.velocity + velocity_dot * step_size
+        self.velocity = self.velocity + velocity_dot * step_size
         self.steer_angle = self.steer_angle + steer_angle_dot + step_size
         self.angular_velocity = self.angular_velocity + theta_double_dot * step_size
         self.slip_angle = self.slip_angle + slip_angle_dot * step_size
         self.st_dyn = True
 
-        #updating the output 
-        self.outputs.append(self.velocity)
-        self.outputs.append(self.steer_angle)
 
         
     
@@ -233,9 +230,7 @@ class Model:
         self.slip_angle = 0            #start.slip_angle + slip_angle_dot * dt;
         self.st_dyn = False
 
-        #updating the output 
-        self.outputs.append(self.velocity)
-        self.outputs.append(self.steer_angle)
+        
 
 
 

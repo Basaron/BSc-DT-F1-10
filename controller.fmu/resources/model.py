@@ -45,7 +45,7 @@ class Controller:
 
         #getting the values 
         input = self.fmi2GetReal(self.references_input)
-
+        
         self.velocity = input[1][0]
         self.steer_angle = input[1][1]
 
@@ -126,19 +126,20 @@ class Controller:
     #------CONTROLLER LOGIC------
     def control_speed_and_angle(self):
         #calculating and setting the new acceleration 
-        self.compute_accel()
-        self.compute_steer_vel()
+        self.compute_acceleration()
+        self.compute_steer_angle_vel()
 
         #setting the output values 
-        self.fmi2SetReal(self.references_output, self.outputs)
+        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel))
 
         return Fmi2Status.ok
     
 
     #------acceleration ------ 
-    def compute_accel(self):
+    def compute_acceleration(self):
         #get difference of velocity
         diff = self.desired_velocity - self.velocity
+        print(diff)
 
         #determine acceleration or braking based on difference between velocities
         if self.velocity > 0:
@@ -164,7 +165,7 @@ class Controller:
             self.set_accel(self.kp_speed * diff)
         
         #inserting the acceleration into output list
-        self.outputs.append(self.acceleration)
+        #self.outputs.append(self.acceleration)
 
 
     def set_accel(self, accel):
@@ -172,20 +173,20 @@ class Controller:
     
 
     #------angle velocity------
-    def compute_steer_vel(self):
+    def compute_steer_angle_vel(self):
         #difference between angles
         diff_angle = self.desired_angle - self.steer_angle
         
         # calculate velocity
         if (abs(diff_angle) > .0001):  # if the difference is not trivial
-            self.steer_vel = diff_angle * self.kp_angle
+            steer_vel = diff_angle * self.kp_angle
         else:
-            self.steer_vel = 0
+            steer_vel = 0
 
-        self.set_steer_angle_vel(self.steer_vel)
+        self.set_steer_angle_vel(steer_vel)
 
         #inserting the angle velocity into output list
-        self.outputs.append(self.set_steer_angle_vel)
+        #self.outputs.append(self.steer_angle_vel)
 
 
     def set_steer_angle_vel(self, steer_angle_vel):
