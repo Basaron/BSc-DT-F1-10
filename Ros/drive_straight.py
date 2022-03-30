@@ -10,6 +10,7 @@ from sensor_msgs.msg import LaserScan
 from ackermann_msgs.msg import AckermannDriveStamped
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Float32
 
 def quaternion_to_euler(x, y, z, w):        
     t0 = +2.0 * (w * x + y * z)
@@ -34,7 +35,8 @@ class RobotMove():
         self.pub = rospy.Publisher('/drive', AckermannDriveStamped, queue_size=10)
         self.rate = rospy.Rate(10) # 10hz
         self.sub=rospy.Subscriber('scan',LaserScan,self.scanCallback)
-        self.odom_sub=rospy.Subscriber('odom',Odometry,self.poseCallback)
+        self.odom_sub=rospy.Subscriber('odom',Odometry,self.odomCallback)
+        self.steer_angle_sub=rospy.Subscriber('steer_angle',Float32,self.steerAngleCallback)
         self.x_data = []
         self.y_data = []
         self.speed_data = []
@@ -53,14 +55,13 @@ class RobotMove():
         self.front = scan.ranges[460: 620]
         self.left = scan.ranges[676: 945]
 
-    def poseCallback(self, data):
+    def odomCallback(self, data):
         self.x_data.append(data.pose.pose.position.x)
         self.y_data.append(data.pose.pose.position.y)
-        
-        self.angle_data.append(data.twist.twist.angular.z)
-
         self.speed_data.append(data.twist.twist.linear.x)
 
+    def steerAngleCallback(self, data):
+        self.angle_data.append(data.data)
         
 
     def writeToCsv(self, event):
@@ -93,9 +94,8 @@ class RobotMove():
             
         else:
             self.msg.drive.speed = 3
-            self.msg.drive.steering_angle = .15
-            rospy.loginfo(min(self.front))
-            rospy.loginfo(max(self.front))
+            self.msg.drive.steering_angle = 0.2
+
 
     def run(self):
         while not rospy.is_shutdown():
