@@ -19,6 +19,8 @@ class Model:
         self.cs_r = 5.4562
         self.mass = 3.47
         self.I_z = 0.04712
+        self.max_steering_angle = 0.4189
+        self.max_speed = 7.
 
         #parameters
         self.threshold = 0.5        #cut off to avoid singular behaviour 
@@ -26,7 +28,7 @@ class Model:
 
         #inputs
         self.acceleration = 0.0 
-        self.steer_angle_vel = 0.0 
+        self.steer_angle_vel = 0.0
 
         #car state variables
         self.x = 0.0                #coordinates x and y is defined as output in order to track the position 
@@ -69,7 +71,10 @@ class Model:
         
         else:
             self.update(step_size)
-        
+
+        self.steer_angle = min(max(self.steer_angle, -self.max_steering_angle), self.max_steering_angle)
+        self.velocity = min(max(self.velocity, -self.max_speed),self.max_speed)
+
         #updating the output values
         self.fmi2SetReal(self.references_output, (self.velocity, self.steer_angle, self.x, self.y))
 
@@ -189,8 +194,6 @@ class Model:
         self.slip_angle = self.slip_angle + slip_angle_dot * step_size
         self.st_dyn = True
 
-
-        
     
     #------normal kinematic------
     def update_k(self, step_size):
@@ -214,10 +217,6 @@ class Model:
         self.angular_velocity = 0      #start.angular_velocity + theta_double_dot * dt;
         self.slip_angle = 0            #start.slip_angle + slip_angle_dot * dt;
         self.st_dyn = False
-
-        
-
-
 
 
 #------Represents the status of the FMU or the results of function calls------
