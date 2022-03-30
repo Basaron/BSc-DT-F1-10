@@ -2,6 +2,7 @@
 
 #from typing_extensions import Self
 import rospy
+import json
 import csv
 import math
 from turtlesim.msg import Pose
@@ -11,6 +12,11 @@ from ackermann_msgs.msg import AckermannDriveStamped
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
+
+#for rappidmq
+import pika
+import sys
+
 
 def quaternion_to_euler(x, y, z, w):        
     t0 = +2.0 * (w * x + y * z)
@@ -48,12 +54,28 @@ class RobotMove():
         self.front = [0.0]
         self.left = [0.0]
         
+        #rappidmq
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        self.channel = self.connection.channel()
+
+        self.channel.exchange_declare(exchange='topic_logs', exchange_type='topic')     
+        
         self.run()
 
     def scanCallback(self, scan):
         self.rigth = scan.ranges[135: 405]
         self.front = scan.ranges[460: 620]
         self.left = scan.ranges[676: 945]
+        
+        routing_key = "ros.LidarData"
+        message = scan.ranges
+        
+        self.channel.basic_publish(
+            exchange='topic_logs', routing_key=routing_key, body=json.dumps(message))
+        print(" [x] Sent %r:%r" % (routing_key, message))
+        
+        
+        
 
     def odomCallback(self, data):
         self.x_data.append(data.pose.pose.position.x)
@@ -102,11 +124,11 @@ class RobotMove():
             self.wallCheck()
             self.pub.publish(self.msg)
             self.rate.sleep()
+        
+        #self.connection.close()
 
 if __name__ == '__main__':
     try: 
         RobotMove()
     except rospy.ROSInterruptException:
         pass
-
-
