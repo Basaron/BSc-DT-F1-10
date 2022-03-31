@@ -28,7 +28,7 @@ class Model:
 
         #inputs
         self.acceleration = 0.0 
-        self.steer_angle_vel = 0.0
+        self.steer_angle_vel = 0.0  
 
         #car state variables
         self.x = 0.0                #coordinates x and y is defined as output in order to track the position 
@@ -170,7 +170,7 @@ class Model:
         
         else:
             vel_ratio = self.angular_velocity / self.velocity
-            first_term = self.friction_coeff / (self.velocity) * (self.l_r + self.l_f)
+            first_term = self.friction_coeff / (self.velocity * (self.l_r + self.l_f))
 
 
         theta_double_dot = (self.friction_coeff * self.mass / (self.I_z * self.wheelbase)) * \
