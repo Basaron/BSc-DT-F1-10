@@ -44,6 +44,14 @@
     <ScalarVariable name="kp_angle" valueReference="7" variability="fixed" causality="parameter" initial="exact">
       <Real start="0.5" />
     </ScalarVariable>
+    <!--Index of variable = "9"-->
+    <ScalarVariable name="distance" valueReference="8" variability="discrete" causality="input">
+      <Real start="0.0"/>
+    </ScalarVariable>
+    <ScalarVariable name="angle" valueReference="9" variability="discrete" causality="input">
+      <Real start="0.0"/>
+    </ScalarVariable>
+
   </ModelVariables>
 
 

@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
 #from typing_extensions import Self
+from pickle import TRUE
 import rospy
 import json
 import csv
 import math
+import datetime
 from turtlesim.msg import Pose
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
@@ -36,10 +38,15 @@ def quaternion_to_euler(x, y, z, w):
 
 class RobotMove():
     def __init__(self):
+        
+        #rappidmq
+        self.connectionFMU = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        self.connectionScan = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        
         rospy.init_node('RobotMove', anonymous=True)
         self.msg = AckermannDriveStamped()
         self.pub = rospy.Publisher('/drive', AckermannDriveStamped, queue_size=10)
-        self.rate = rospy.Rate(10) # 10hz
+        self.rate = rospy.Rate(100) # 100hz
         self.sub=rospy.Subscriber('scan',LaserScan,self.scanCallback)
         self.odom_sub=rospy.Subscriber('odom',Odometry,self.odomCallback)
         self.steer_angle_sub=rospy.Subscriber('steer_angle',Float32,self.steerAngleCallback)
@@ -47,35 +54,85 @@ class RobotMove():
         self.y_data = []
         self.speed_data = []
         self.angle_data = []
+        self.velocity = 0.
 
-        rospy.Timer(rospy.Duration(10), self.writeToCsv, oneshot=True)
+        #rospy.Timer(rospy.Duration(10), self.writeToCsv, oneshot=True)
 
         self.rigth = [0.0]
         self.front = [0.0]
         self.left = [0.0]
         
-        #rappidmq
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-        self.channel = self.connection.channel()
+        
+        #rabbitmq
+        self.channelScan = self.connectionScan.channel()
+        
+        self.channelScan.exchange_declare(exchange='topic_logs', exchange_type='topic')
+        
+        
+        self.channelFMU = self.connectionFMU.channel()
+        
+        self.channelFMU.exchange_declare(exchange='topic_logs', exchange_type='topic')     
+        
+        result = self.channelFMU.queue_declare('FMU', exclusive=TRUE)
+        queue_name = result.method.queue
 
-        self.channel.exchange_declare(exchange='topic_logs', exchange_type='topic')     
+
+        self.channelFMU.queue_bind(
+            exchange = 'topic_logs', queue=queue_name, routing_key="fmu.test")
+
+        self.channelFMU.basic_consume(
+            queue=queue_name, on_message_callback=self.fmuCallback, auto_ack=True)
+
+        self.channelFMU.start_consuming()
         
         self.run()
+       
+        
+    def fmuCallback(self, ch, method, properties, body):
+        """if rospy.is_shutdown():
+            print("exiting...")
+            self.channelFMU.stop_consuming
+            self.exit()"""
+        
+        body = json.loads(body)  
+        
+        try:
+            print(body['outTest'])
+            self.velocity = body['outTest']
+        except:
+            print("something happened")
+            pass
+        
+        self.wallCheck()
+        self.pub.publish(self.msg)
+        
+        
 
     def scanCallback(self, scan):
-        self.rigth = scan.ranges[135: 405]
-        self.front = scan.ranges[460: 620]
-        self.left = scan.ranges[676: 945]
         
-        routing_key = "ros.LidarData"
-        message = scan.ranges
+        rt = rospy.get_rostime()
+        rostime = rt.secs + rt.nsecs * 1e-09
         
-        self.channel.basic_publish(
+        rostimeISO = datetime.datetime.strptime(datetime.datetime.utcfromtimestamp(rostime).isoformat(timespec='milliseconds')+'+0100', "%Y-%m-%dT%H:%M:%S.%f%z")
+        
+        
+        if not self.connectionScan or self.connectionScan.is_closed:
+            self.connectionScan = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+            self.channelScan = self.connection.channel()
+        
+            self.channelScan.exchange_declare(exchange='topic_logs', exchange_type='topic')
+        
+        
+        routing_key = "robot.lidar"
+        #print(rostimeISO.isoformat(timespec='milliseconds'))
+        message = {
+            'time': rostimeISO.isoformat(timespec='milliseconds'),         
+            'scan': scan.ranges
+        }
+        
+        self.channelScan.basic_publish(
             exchange='topic_logs', routing_key=routing_key, body=json.dumps(message))
-        print(" [x] Sent %r:%r" % (routing_key, message))
-        
-        
-        
+              
 
     def odomCallback(self, data):
         self.x_data.append(data.pose.pose.position.x)
@@ -111,21 +168,20 @@ class RobotMove():
 
     def wallCheck(self):
         if(min(self.front) < 1.5):
-            self.msg.drive.speed = 0
-            self.msg.drive.steering_angle = 0
+            self.msg.drive.speed = self.velocity
+            self.msg.drive.steering_angle = 0.0
             
         else:
-            self.msg.drive.speed = 3
-            self.msg.drive.steering_angle = 0.2
+            self.msg.drive.speed = self.velocity
+            self.msg.drive.steering_angle = 0.
 
 
-    def run(self):
-        while not rospy.is_shutdown():
-            self.wallCheck()
-            self.pub.publish(self.msg)
-            self.rate.sleep()
-        
-        #self.connection.close()
+    def exit(self):
+        self.connectionFromRobot.close()
+        self.connectionToFMU.close()
+        self.channelRobotLidar.stop_consuming()
+        self.channelToFmu.stop_consuming()
+        rospy.signal_shutdown("Stopping by user")
 
 if __name__ == '__main__':
     try: 

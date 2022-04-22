@@ -23,6 +23,8 @@ class Controller:
         #inputs 
         self.velocity = 0.0
         self.steer_angle = 0.0 
+        self.distance = 0.0
+        self.angle = 0.0
 
         #outputs 
         self.acceleration = 0.0 
@@ -38,10 +40,12 @@ class Controller:
             5: "steer_angle_vel",
             6: "kp_speed",
             7: "kp_angle",
+            8: "distance",
+            9: "angle",
         }
 
         #references to the inputs and outputs 
-        self.references_input = [2, 3]
+        self.references_input = [2, 3, 8, 9]
         self.references_output = [4, 5]
 
         #getting the values 
@@ -49,7 +53,9 @@ class Controller:
 
         self.velocity = input[1][0]
         self.steer_angle = input[1][1]
-
+        self.distance = input[1][2]
+        self.angle = input[1][3]
+       
 
     
     #------PROCESS IN TIME------ 
@@ -127,6 +133,8 @@ class Controller:
         self.compute_acceleration()
         self.compute_steer_angle_vel()
 
+        print("distance = ", self.distance, "angle = ", self.angle)
+        
         #setting the output values 
         self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel))
 
@@ -137,7 +145,6 @@ class Controller:
     def compute_acceleration(self):
         #get difference of velocity
         diff = self.desired_velocity - self.velocity
-        print(diff)
 
         #determine acceleration or braking based on difference between velocities
         if self.velocity > 0:
