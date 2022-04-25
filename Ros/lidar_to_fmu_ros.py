@@ -17,6 +17,9 @@ class LidarToFmuRos():
         rospy.init_node('LidarToFmuRos', anonymous=True)
         self.rate = rospy.Rate(1000) # 10hz
         
+        #const for calculating desired angle to turn
+        number_of_scans = 540
+        self.phi = np.pi/number_of_scans        
             
         #rabbitmq
         self.connectionToFMU = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
@@ -65,13 +68,14 @@ class LidarToFmuRos():
             self.channelToFmu.exchange_declare(exchange='topic_logs', exchange_type='topic')
             
         body = json.loads(body)  
-        distances = body['scan']  
+        distances = body['scan'][270: 810]
             
-        number_of_scans = 1080
-        phi = 2*np.pi/number_of_scans
-        idx = np.argmax(distances)
+        
+        idx = np.argmax(distances)      
         distance = distances[idx]
-        angle = phi*idx
+        angle = -(self.phi*(idx) - np.pi/2) 
+        
+        print(distance," : ", angle, " : ", idx)
             
         routing_key = "fmu.targets"
         message = {
