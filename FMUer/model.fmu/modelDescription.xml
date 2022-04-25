@@ -29,19 +29,19 @@
       <Real start="0.0"/>
     </ScalarVariable>
     <!--Index of variable = "5"-->
-    <ScalarVariable name="velocity" valueReference="4" variability="continuous" causality="output" initial="approx">
+    <ScalarVariable name="velocity" valueReference="4" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
     <!--Index of variable = "6"-->
-    <ScalarVariable name="steer_angle" valueReference="5" variability="continuous" causality="output" initial="approx">
+    <ScalarVariable name="steer_angle" valueReference="5" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
     <!--Index of variable = "7"-->
-    <ScalarVariable name="x" valueReference="6" variability="continuous" causality="output" initial="approx">
+    <ScalarVariable name="x" valueReference="6" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
     <!--Index of variable = "8"-->
-    <ScalarVariable name="y" valueReference="7" variability="continuous" causality="output" initial="approx">
+    <ScalarVariable name="y" valueReference="7" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
   </ModelVariables>

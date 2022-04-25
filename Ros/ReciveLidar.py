@@ -14,7 +14,7 @@ queue_name = result.method.queue
 
 
 channel.queue_bind(
-    exchange='topic_logs', queue=queue_name, routing_key="ros.LidarData")
+    exchange='topic_logs', queue=queue_name, routing_key="fmu.test")
 
 print(' [*] Waiting for logs. To exit press CTRL+C')
 

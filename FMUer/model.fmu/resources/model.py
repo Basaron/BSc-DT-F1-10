@@ -189,7 +189,7 @@ class Model:
         self.y = self.y + y_dot * step_size
         self.theta = self.theta + theta_dot * step_size
         self.velocity = self.velocity + velocity_dot * step_size
-        self.steer_angle = self.steer_angle + steer_angle_dot + step_size
+        self.steer_angle = self.steer_angle + steer_angle_dot * step_size
         self.angular_velocity = self.angular_velocity + theta_double_dot * step_size
         self.slip_angle = self.slip_angle + slip_angle_dot * step_size
         self.st_dyn = True
@@ -247,7 +247,7 @@ class Fmi2Status:
 if __name__ == "__main__":
     m = Model()
     m.acceleration = 3.0
-    m.steer_angle_vel = 0.4
+    m.steer_angle_vel = 0.0
     m.fmi2DoStep(0.0, 4.0, False)
     print(m.x)
     print(m.y)

@@ -46,7 +46,7 @@ class RobotMove():
         rospy.init_node('RobotMove', anonymous=True)
         self.msg = AckermannDriveStamped()
         self.pub = rospy.Publisher('/drive', AckermannDriveStamped, queue_size=10)
-        self.rate = rospy.Rate(100) # 100hz
+        self.rate = rospy.Rate(1000) # 100hz
         self.sub=rospy.Subscriber('scan',LaserScan,self.scanCallback)
         self.odom_sub=rospy.Subscriber('odom',Odometry,self.odomCallback)
         self.steer_angle_sub=rospy.Subscriber('steer_angle',Float32,self.steerAngleCallback)
@@ -54,7 +54,8 @@ class RobotMove():
         self.y_data = []
         self.speed_data = []
         self.angle_data = []
-        self.velocity = 0.
+        self.acceleration = 0.
+        self.steer_angle_vel = 0.
 
         #rospy.Timer(rospy.Duration(10), self.writeToCsv, oneshot=True)
 
@@ -78,7 +79,7 @@ class RobotMove():
 
 
         self.channelFMU.queue_bind(
-            exchange = 'topic_logs', queue=queue_name, routing_key="fmu.test")
+            exchange = 'topic_logs', queue=queue_name, routing_key="fmu.output")
 
         self.channelFMU.basic_consume(
             queue=queue_name, on_message_callback=self.fmuCallback, auto_ack=True)
@@ -97,10 +98,17 @@ class RobotMove():
         body = json.loads(body)  
         
         try:
-            print(body['outTest'])
-            self.velocity = body['outTest']
+            #print(body['acceleration'])
+            self.acceleration = body['acceleration']
+        
         except:
-            print("something happened")
+            pass
+        
+            
+        try:
+            print(body['steer_angle_vel'])
+            self.steer_angle_vel = body['steer_angle_vel']    
+        except:
             pass
         
         self.wallCheck()
@@ -168,12 +176,12 @@ class RobotMove():
 
     def wallCheck(self):
         if(min(self.front) < 1.5):
-            self.msg.drive.speed = self.velocity
-            self.msg.drive.steering_angle = 0.0
+            self.msg.drive.speed = self.acceleration
+            self.msg.drive.steering_angle = self.steer_angle_vel
             
         else:
-            self.msg.drive.speed = self.velocity
-            self.msg.drive.steering_angle = 0.
+            self.msg.drive.speed = self.acceleration
+            self.msg.drive.steering_angle = self.steer_angle_vel
 
 
     def exit(self):

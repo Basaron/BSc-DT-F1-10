@@ -17,7 +17,7 @@ class Controller:
         self.desired_velocity = 0.0
         self.desired_angle = 0.0
 
-        self.kp_speed = 0.5       #speed proportional gain
+        self.kp_speed = 2.15       #speed proportional gain
         self.kp_angle = 0.5       #angle proportional gain 
 
         #inputs 
@@ -183,15 +183,12 @@ class Controller:
         diff_angle = self.desired_angle - self.steer_angle
         
         # calculate velocity
-        if (abs(diff_angle) > .0001):  # if the difference is not trivial
+        if (abs(diff_angle) > .01):  # if the difference is not trivial
             steer_vel = diff_angle * self.kp_angle
         else:
             steer_vel = 0
 
         self.set_steer_angle_vel(steer_vel)
-
-        #inserting the angle velocity into output list
-        #self.outputs.append(self.steer_angle_vel)
 
 
     def set_steer_angle_vel(self, steer_angle_vel):

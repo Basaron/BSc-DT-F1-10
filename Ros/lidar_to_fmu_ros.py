@@ -15,7 +15,7 @@ class LidarToFmuRos():
         
         #rospy
         rospy.init_node('LidarToFmuRos', anonymous=True)
-        self.rate = rospy.Rate(100) # 10hz
+        self.rate = rospy.Rate(1000) # 10hz
         
             
         #rabbitmq
@@ -38,6 +38,7 @@ class LidarToFmuRos():
         self.channelRobotLidar.queue_bind(
             exchange = 'topic_logs', queue=queue_name, routing_key="robot.lidar")
 
+        
         self.channelRobotLidar.basic_consume(
             queue=queue_name, on_message_callback=self.RobotLidarCallback, auto_ack=True)
         
