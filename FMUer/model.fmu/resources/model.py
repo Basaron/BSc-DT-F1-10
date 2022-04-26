@@ -50,11 +50,12 @@ class Model:
             5: "steer_angle",
             6: "x",
             7: "y",
+            8: "theta",
         }
 
         #references to the inputs and outputs 
         self.references_input = [2, 3]
-        self.references_output = [4, 5]
+        self.references_output = [4, 5, 8]
 
         #getting the values 
         input = self.fmi2GetReal(self.references_input)
@@ -76,7 +77,7 @@ class Model:
         self.velocity = min(max(self.velocity, -self.max_speed),self.max_speed)
 
         #updating the output values
-        self.fmi2SetReal(self.references_output, (self.velocity, self.steer_angle, self.x, self.y))
+        self.fmi2SetReal(self.references_output, (self.velocity, self.steer_angle, self.x, self.y, self.theta))
 
         return Fmi2Status.ok
 

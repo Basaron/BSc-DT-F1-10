@@ -15,7 +15,7 @@ class LidarToFmuRos():
         
         #rospy
         rospy.init_node('LidarToFmuRos', anonymous=True)
-        self.rate = rospy.Rate(1000) # 10hz
+        self.rate = rospy.Rate(100) # 10hz
         
         #const for calculating desired angle to turn
         number_of_scans = 540
@@ -73,9 +73,9 @@ class LidarToFmuRos():
         
         idx = np.argmax(distances)      
         distance = distances[idx]
-        angle = -(self.phi*(idx) - np.pi/2) 
+        angle = (self.phi*(idx) - np.pi/2) 
         
-        print(distance," : ", angle, " : ", idx)
+        #print(distance," : ", angle, " : ", idx)
             
         routing_key = "fmu.targets"
         message = {

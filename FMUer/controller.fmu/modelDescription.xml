@@ -13,43 +13,40 @@
 
   <ModelVariables>
     <!--Index of variable = "1"-->
-    <ScalarVariable name="desired_velocity" valueReference="0" variability="fixed" causality="parameter">
-      <Real start = "0.0"/>
+    <ScalarVariable name="velocity" valueReference="0" variability="continuous" causality="input">
+      <Real start ="0.0" />
     </ScalarVariable>
     <!--Index of variable = "2"-->
-    <ScalarVariable name="desired_angle" valueReference="1" variability="fixed" causality="parameter">
-      <Real start = "0.0"/>
+    <ScalarVariable name="steer_angle" valueReference="1" variability="continuous" causality="input">
+      <Real start ="0.0" />
     </ScalarVariable>
     <!--Index of variable = "3"-->
-    <ScalarVariable name="velocity" valueReference="2" variability="continuous" causality="input">
+    <ScalarVariable name="acceleration" valueReference="2" variability="continuous" causality="output" initial="approx">
       <Real start ="0.0" />
     </ScalarVariable>
     <!--Index of variable = "4"-->
-    <ScalarVariable name="steer_angle" valueReference="3" variability="continuous" causality="input">
-      <Real start ="0.0" />
-    </ScalarVariable>
-    <!--Index of variable = "5"-->
-    <ScalarVariable name="acceleration" valueReference="4" variability="continuous" causality="output" initial="approx">
-      <Real start ="0.0" />
-    </ScalarVariable>
-    <!--Index of variable = "6"-->
-    <ScalarVariable name="steer_angle_vel" valueReference="5" variability="continuous" causality="output" initial="approx">
+    <ScalarVariable name="steer_angle_vel" valueReference="3" variability="continuous" causality="output" initial="approx">
       <Real start="0.0" />
     </ScalarVariable>
-    <!--Index of variable = "7"-->
-    <ScalarVariable name="kp_speed" valueReference="6" variability="fixed" causality="parameter" initial="exact">
+    <!--Index of variable = "5"-->
+    <ScalarVariable name="kp_speed" valueReference="4" variability="fixed" causality="parameter" initial="exact">
       <Real start="0.5" />
+    </ScalarVariable>
+    <!--Index of variable = "6"-->
+    <ScalarVariable name="kp_angle" valueReference="5" variability="fixed" causality="parameter" initial="exact">
+      <Real start="0.5" />
+    </ScalarVariable>
+    <!--Index of variable = "7"-->
+    <ScalarVariable name="distance" valueReference="6" variability="discrete" causality="input">
+      <Real start="0.0"/>
     </ScalarVariable>
     <!--Index of variable = "8"-->
-    <ScalarVariable name="kp_angle" valueReference="7" variability="fixed" causality="parameter" initial="exact">
-      <Real start="0.5" />
+    <ScalarVariable name="angle" valueReference="7" variability="discrete" causality="input">
+      <Real start="0.0"/>
     </ScalarVariable>
     <!--Index of variable = "9"-->
-    <ScalarVariable name="distance" valueReference="8" variability="discrete" causality="input">
-      <Real start="0.0"/>
-    </ScalarVariable>
-    <ScalarVariable name="angle" valueReference="9" variability="discrete" causality="input">
-      <Real start="0.0"/>
+    <ScalarVariable name="distance_squish" valueReference="8" variability="fixed" causality="parameter" initial="exact">
+      <Real start="0.5" />
     </ScalarVariable>
 
   </ModelVariables>
@@ -57,8 +54,8 @@
 
   <ModelStructure>
     <Outputs>
-      <Unknown index="5" dependencies="" />
-      <Unknown index="6" dependencies="" />
+      <Unknown index="3" dependencies="" />
+      <Unknown index="4" dependencies="" />
     </Outputs>
   </ModelStructure>
 </fmiModelDescription>

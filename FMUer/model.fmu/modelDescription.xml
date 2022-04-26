@@ -44,6 +44,10 @@
     <ScalarVariable name="y" valueReference="7" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
+    <!--Index of variable = "9"-->
+    <ScalarVariable name="theta" valueReference="8" variability="discrete" causality="output" initial="approx">
+      <Real start="0.0"/>
+    </ScalarVariable>
   </ModelVariables>
 
   <ModelStructure>
@@ -52,6 +56,7 @@
       <Unknown index="6" dependencies="" />
       <Unknown index="7" dependencies="" />
       <Unknown index="8" dependencies="" />
+      <Unknown index="9" dependencies="" />
     </Outputs>
   </ModelStructure>
 </fmiModelDescription>

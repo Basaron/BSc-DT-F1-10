@@ -17,8 +17,9 @@ class Controller:
         self.desired_velocity = 0.0
         self.desired_angle = 0.0
 
-        self.kp_speed = 2.15       #speed proportional gain
-        self.kp_angle = 0.5       #angle proportional gain 
+        self.kp_speed = 0.1       #speed proportional gain
+        self.kp_angle = 1.        #angle proportional gain 
+        self.distance_squish = 0.5
 
         #inputs 
         self.velocity = 0.0
@@ -32,21 +33,20 @@ class Controller:
 
         #reference to xml file 
         self.reference_to_attribute = {
-            0: "desired_velocity",
-            1: "desired_angle", 
-            2: "velocity",
-            3: "steer_angle",
-            4: "acceleration",
-            5: "steer_angle_vel",
-            6: "kp_speed",
-            7: "kp_angle",
-            8: "distance",
-            9: "angle",
+            0: "velocity",
+            1: "steer_angle",
+            2: "acceleration",
+            3: "steer_angle_vel",
+            4: "kp_speed",
+            5: "kp_angle",
+            6: "distance",
+            7: "angle",
+            8: "distance_squish"
         }
 
         #references to the inputs and outputs 
-        self.references_input = [2, 3, 8, 9]
-        self.references_output = [4, 5]
+        self.references_input = [0, 1, 6, 7]
+        self.references_output = [2, 3]
 
         #getting the values 
         input = self.fmi2GetReal(self.references_input)
@@ -133,8 +133,6 @@ class Controller:
         self.compute_acceleration()
         self.compute_steer_angle_vel()
 
-        print("distance = ", self.distance, "angle = ", self.angle)
-        
         #setting the output values 
         self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel))
 
@@ -143,6 +141,9 @@ class Controller:
 
     #------acceleration ------ 
     def compute_acceleration(self):
+        # p controller proportional to distance
+        self.desired_velocity = self.distance * self.distance_squish
+        
         #get difference of velocity
         diff = self.desired_velocity - self.velocity
 
@@ -169,8 +170,6 @@ class Controller:
             #acceleration 
             self.set_accel(self.kp_speed * diff)
         
-        #inserting the acceleration into output list
-        #self.outputs.append(self.acceleration)
 
 
     def set_accel(self, accel):
@@ -180,11 +179,18 @@ class Controller:
     #------angle velocity------
     def compute_steer_angle_vel(self):
         #difference between angles
-        diff_angle = self.desired_angle - self.steer_angle
+        self.desired_angle = self.angle
+        
+        if (self.desired_angle > self.max_steering_angle):
+            self.desired_angle = self.max_steering_angle
+        elif (self.desired_angle < -self.max_steering_angle):
+            self.desired_angle = -self.max_steering_angle
+
+        diff_steer_angle = (self.desired_angle - self.steer_angle)
         
         # calculate velocity
-        if (abs(diff_angle) > .01):  # if the difference is not trivial
-            steer_vel = diff_angle * self.kp_angle
+        if (abs(diff_steer_angle) > .01):  # if the difference is not trivial
+            steer_vel = diff_steer_angle * self.kp_angle
         else:
             steer_vel = 0
 
@@ -193,7 +199,6 @@ class Controller:
 
     def set_steer_angle_vel(self, steer_angle_vel):
         self.steer_angle_vel = min(max(steer_angle_vel, -self.max_steering_vel), self.max_steering_vel)
-
 
 
 

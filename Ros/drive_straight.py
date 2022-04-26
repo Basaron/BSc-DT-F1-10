@@ -46,7 +46,7 @@ class RobotMove():
         rospy.init_node('RobotMove', anonymous=True)
         self.msg = AckermannDriveStamped()
         self.pub = rospy.Publisher('/drive', AckermannDriveStamped, queue_size=10)
-        self.rate = rospy.Rate(1000) # 100hz
+        self.rate = rospy.Rate(100) # 100hz
         self.sub=rospy.Subscriber('scan',LaserScan,self.scanCallback)
         self.odom_sub=rospy.Subscriber('odom',Odometry,self.odomCallback)
         self.steer_angle_sub=rospy.Subscriber('steer_angle',Float32,self.steerAngleCallback)
@@ -106,7 +106,7 @@ class RobotMove():
         
             
         try:
-            print(body['steer_angle_vel'])
+            #print(body['steer_angle_vel'])
             self.steer_angle_vel = body['steer_angle_vel']    
         except:
             pass
