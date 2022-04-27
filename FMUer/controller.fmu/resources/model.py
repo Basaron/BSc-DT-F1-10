@@ -12,14 +12,15 @@ class Controller:
         self.max_speed = 7.0
         self.max_steering_vel = 3.2 
         self.max_steering_angle = 0.4189
-
+        self.angle_converter = self.max_steering_angle / 1.60
+        self.velocity_converter = self.max_speed / 25
+        
         #parameters
         self.desired_velocity = 0.0
         self.desired_angle = 0.0
 
         self.kp_speed = 0.1       #speed proportional gain
         self.kp_angle = 1.        #angle proportional gain 
-        self.distance_squish = 0.5
 
         #inputs 
         self.velocity = 0.0
@@ -41,12 +42,12 @@ class Controller:
             5: "kp_angle",
             6: "distance",
             7: "angle",
-            8: "distance_squish"
         }
 
         #references to the inputs and outputs 
         self.references_input = [0, 1, 6, 7]
         self.references_output = [2, 3]
+        self.references_parameter = [4, 5]
 
         #getting the values 
         input = self.fmi2GetReal(self.references_input)
@@ -55,12 +56,17 @@ class Controller:
         self.steer_angle = input[1][1]
         self.distance = input[1][2]
         self.angle = input[1][3]
+        
+        parameter = self.fmi2GetReal(self.references_parameter)
+        self.kp_speed = parameter[1][0]
+        self.kp_angle = parameter[1][1]      
        
 
     
     #------PROCESS IN TIME------ 
     def fmi2DoStep(self, current_time, step_size, no_step_prior):
         self.control_speed_and_angle()
+            
         return Fmi2Status.ok
 
 
@@ -129,9 +135,10 @@ class Controller:
 
     #------CONTROLLER LOGIC------
     def control_speed_and_angle(self):
-        #calculating and setting the new acceleration 
+        #calculating and setting the new acceleration
+        self.compute_steer_angle_vel() 
         self.compute_acceleration()
-        self.compute_steer_angle_vel()
+        
 
         #setting the output values 
         self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel))
@@ -141,13 +148,21 @@ class Controller:
 
     #------acceleration ------ 
     def compute_acceleration(self):
+        angle_bound = 0.3
         # p controller proportional to distance
-        self.desired_velocity = self.distance * self.distance_squish
+            
+        if self.angle > angle_bound or self.angle < -angle_bound:
+            self.desired_velocity = self.distance * self.velocity_converter * (1/(abs(self.desired_angle) + 2))
+        else:
+            self.desired_velocity = self.distance * self.velocity_converter
         
+
         #get difference of velocity
         diff = self.desired_velocity - self.velocity
 
         #determine acceleration or braking based on difference between velocities
+        self.set_accel(self.kp_speed * diff)
+        """
         if self.velocity > 0:
             if diff > 0:
                 #accelerate
@@ -169,7 +184,7 @@ class Controller:
         else:
             #acceleration 
             self.set_accel(self.kp_speed * diff)
-        
+        """
 
 
     def set_accel(self, accel):
@@ -178,30 +193,29 @@ class Controller:
 
     #------angle velocity------
     def compute_steer_angle_vel(self):
-        #difference between angles
-        self.desired_angle = self.angle
-        
-        if (self.desired_angle > self.max_steering_angle):
+        angle_bound = 0.3
+        offset = 0.006*20
+           
+        if self.angle > angle_bound:
+            self.desired_angle = (self.angle - offset) * self.angle_converter
+        elif self.angle < -angle_bound:
+            self.desired_angle = (self.angle + offset) * self.angle_converter
+        else:
+            self.desired_angle = self.angle  * self.angle_converter
+            
+        """if (self.desired_angle > self.max_steering_angle):
             self.desired_angle = self.max_steering_angle
         elif (self.desired_angle < -self.max_steering_angle):
-            self.desired_angle = -self.max_steering_angle
+            self.desired_angle = -self.max_steering_angle"""
+            
+        #difference between angles
+        diff_steer_angle = self.desired_angle - self.steer_angle
 
-        diff_steer_angle = (self.desired_angle - self.steer_angle)
-        
-        # calculate velocity
-        if (abs(diff_steer_angle) > .01):  # if the difference is not trivial
-            steer_vel = diff_steer_angle * self.kp_angle
-        else:
-            steer_vel = 0
-
-        self.set_steer_angle_vel(steer_vel)
+        self.set_steer_angle_vel(diff_steer_angle * self.kp_angle)
 
 
     def set_steer_angle_vel(self, steer_angle_vel):
         self.steer_angle_vel = min(max(steer_angle_vel, -self.max_steering_vel), self.max_steering_vel)
-
-
-
 
 
 class Fmi2Status:

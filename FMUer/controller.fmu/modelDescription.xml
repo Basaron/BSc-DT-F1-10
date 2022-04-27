@@ -44,10 +44,6 @@
     <ScalarVariable name="angle" valueReference="7" variability="discrete" causality="input">
       <Real start="0.0"/>
     </ScalarVariable>
-    <!--Index of variable = "9"-->
-    <ScalarVariable name="distance_squish" valueReference="8" variability="fixed" causality="parameter" initial="exact">
-      <Real start="0.5" />
-    </ScalarVariable>
 
   </ModelVariables>
 

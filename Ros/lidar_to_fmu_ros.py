@@ -67,15 +67,12 @@ class LidarToFmuRos():
             self.channelToFmu = self.connectionToFMU.channel()
             self.channelToFmu.exchange_declare(exchange='topic_logs', exchange_type='topic')
             
-        body = json.loads(body)  
-        distances = body['scan'][270: 810]
-            
+        body = json.loads(body) 
         
+        distances = body['scan'][270: 810]
         idx = np.argmax(distances)      
         distance = distances[idx]
         angle = (self.phi*(idx) - np.pi/2) 
-        
-        #print(distance," : ", angle, " : ", idx)
             
         routing_key = "fmu.targets"
         message = {
