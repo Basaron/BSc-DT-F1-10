@@ -20,7 +20,6 @@
         <ScalarVariable name="angle" valueReference="21" variability="continuous" causality="output">
             <Real/>
         </ScalarVariable>
-
         <ScalarVariable name="acceleration" valueReference="22" variability="continuous" causality="input">
             <Real start="0.0"/>
         </ScalarVariable>

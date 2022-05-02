@@ -49,12 +49,7 @@ class LidarToFmuRos():
         
 
 
-    def RobotLidarCallback(self, ch, method, properties, body):
-        """if rospy.is_shutdown:
-            print("exiting...")
-            self.channelRobotLidar.stop_consuming
-            self.exit()"""
-            
+    def RobotLidarCallback(self, ch, method, properties, body):  
         
         #get time with for rabbit msg
         rt = rospy.get_rostime()
@@ -69,29 +64,38 @@ class LidarToFmuRos():
             
         body = json.loads(body) 
         
-        distances = body['scan'][270: 810]
-        idx = np.argmax(distances)      
-        distance = distances[idx]
-        angle = (self.phi*(idx) - np.pi/2) 
+        # IDEA: take the average of points close to the longest distance to prevent noisy data
+        # IDEA: include argmin(distances) for angle and closest distance in message such that controller can do a correction
+        average_range = 50
+        
+        #input for desired scan data has to be number remember to change
+        distances = body['scan'][245: 835]
+        average_distances = np.zeros(540)
+        
+        # find average distance and angle around longest distance
+        
+        for i in range(25):
+            distances[i] = distances[25]
+            distances[i + 565] = distances[565]
+        
+        for i in range(540):
+            average_distances[i] = np.average(distances[i: i + average_range])
             
+        # find the longest distance and corresponding angle
+        idx = np.argmax(average_distances)
+        distance = average_distances[idx]
+        angle = (self.phi*(idx) - np.pi/2) 
+        
+                 
         routing_key = "fmu.targets"
         message = {
             'time': rostimeISO.isoformat(timespec='milliseconds'),         
             'distance': distance,
-            'angle': angle
-        }
+            'angle': angle,
+            }
             
         self.channelToFmu.basic_publish(
             exchange='topic_logs', routing_key=routing_key, body=json.dumps(message))
-
-        
-    
-    def exit(self):
-        self.connectionFromRobot.close()
-        self.connectionToFMU.close()
-        self.channelRobotLidar.stop_consuming()
-        self.channelToFmu.stop_consuming()
-        rospy.signal_shutdown("Stopping by user")
         
         
 if __name__ == '__main__': 

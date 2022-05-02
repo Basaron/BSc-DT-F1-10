@@ -1,19 +1,23 @@
 from asyncio import selector_events
 import pickle
 
+from numpy import angle
+
 #Reference: https://github.com/f1tenth/f1tenth_simulator/blob/master/node/simulator.cpp
 
 class Controller:
     def __init__(self) -> None:
         
         #constants
+        PI = 3.1456
+        max_distance = 25
         self.max_accel = 7.51
         self.max_decel = 8.26
         self.max_speed = 7.0
         self.max_steering_vel = 3.2 
         self.max_steering_angle = 0.4189
-        self.angle_converter = self.max_steering_angle / 1.60
-        self.velocity_converter = self.max_speed / 25
+        self.angle_converter = self.max_steering_angle / (PI/2)
+        self.velocity_converter = self.max_speed / max_distance
         
         #parameters
         self.desired_velocity = 0.0
@@ -42,11 +46,12 @@ class Controller:
             5: "kp_angle",
             6: "distance",
             7: "angle",
+            8: "desired_angle"
         }
 
         #references to the inputs and outputs 
         self.references_input = [0, 1, 6, 7]
-        self.references_output = [2, 3]
+        self.references_output = [2, 3, 8]
         self.references_parameter = [4, 5]
 
         #getting the values 
@@ -141,7 +146,7 @@ class Controller:
         
 
         #setting the output values 
-        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel))
+        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel, self.desired_angle))
 
         return Fmi2Status.ok
     
@@ -149,10 +154,15 @@ class Controller:
     #------acceleration ------ 
     def compute_acceleration(self):
         angle_bound = 0.3
+        offset = 1
         # p controller proportional to distance
             
-        if self.angle > angle_bound or self.angle < -angle_bound:
-            self.desired_velocity = self.distance * self.velocity_converter * (1/(abs(self.desired_angle) + 2))
+                
+        if self.angle > angle_bound*2 or self.angle < -angle_bound * 2:
+            self.desired_velocity = self.distance * self.velocity_converter * (1/(abs(self.desired_angle) + offset*1))
+            
+        elif self.angle > angle_bound or self.angle < -angle_bound:
+            self.desired_velocity = self.distance * self.velocity_converter * (1/(abs(self.desired_angle) + offset))
         else:
             self.desired_velocity = self.distance * self.velocity_converter
         
@@ -161,7 +171,9 @@ class Controller:
         diff = self.desired_velocity - self.velocity
 
         #determine acceleration or braking based on difference between velocities
+
         self.set_accel(self.kp_speed * diff)
+
         """
         if self.velocity > 0:
             if diff > 0:
@@ -196,10 +208,15 @@ class Controller:
         angle_bound = 0.3
         offset = 0.006*20
            
-        if self.angle > angle_bound:
+        if self.angle > angle_bound * 2:
+            self.desired_angle = (self.angle - offset) * self.angle_converter
+        elif self.angle < -angle_bound * 2:
+            self.desired_angle = (self.angle + offset) * self.angle_converter
+        elif self.angle > angle_bound:
             self.desired_angle = (self.angle - offset) * self.angle_converter
         elif self.angle < -angle_bound:
             self.desired_angle = (self.angle + offset) * self.angle_converter
+        
         else:
             self.desired_angle = self.angle  * self.angle_converter
             
