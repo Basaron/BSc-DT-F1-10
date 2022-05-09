@@ -47,7 +47,13 @@ class Controller:
             5: "kp_angle",
             6: "distance",
             7: "angle",
-            8: "desired_angle"
+            8: "desired_angle",
+            
+            9: "x_s",
+            10: "y_s",
+            11: "theta_s",
+            12: "velocity_s",
+            13: "steer_angle_s"
         }
 
         #references to the inputs and outputs 

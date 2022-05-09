@@ -48,6 +48,28 @@
     <ScalarVariable name="desired_angle" valueReference="8" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
+
+
+    <!--Index of variable = "10"-->
+    <ScalarVariable name="x_s" valueReference="9" variability="continuous" causality="input">
+      <Real start ="0.0" />
+    </ScalarVariable>
+    <!--Index of variable = "11"-->
+    <ScalarVariable name="y_s" valueReference="10" variability="continuous" causality="input">
+      <Real start ="0.0" />
+    </ScalarVariable>
+    <!--Index of variable = "12"-->
+    <ScalarVariable name="theta_s" valueReference="11" variability="continuous" causality="input">
+      <Real start ="0.0" />
+    </ScalarVariable>
+    <!--Index of variable = "13"-->
+    <ScalarVariable name="velocity_s" valueReference="12" variability="continuous" causality="input">
+      <Real start ="0.0" />
+    </ScalarVariable>
+    <!--Index of variable = "14"-->
+    <ScalarVariable name="steer_angle_s" valueReference="13" variability="continuous" causality="input">
+      <Real start ="0.0" />
+    </ScalarVariable>
   </ModelVariables>
 
 
