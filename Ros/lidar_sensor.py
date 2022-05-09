@@ -25,21 +25,20 @@ class Lidar():
             
         rospy.spin()
 
-    def lidar_data_processing(self, distances):
+    def lidar_data_processing(self, distances, points_for_average=50):
 
         number_of_scans = 540
         phi = np.pi/number_of_scans 
 
-        #TODO: make it so that user can manually change how many points to use for average
-        average_range = 50
         average_distances = np.zeros(540)
+        half = int(points_for_average/2)
 
-        for i in range(25):
-            distances[i] = distances[25]
+        for i in range(half):
+            distances[i] = distances[half]
             distances[i + 565] = distances[565]
         
         for i in range(540):
-            average_distances[i] = np.average(distances[i: i + average_range])
+            average_distances[i] = np.average(distances[i: i + points_for_average])
             
         # find the longest distance and corresponding angle
         idx = np.argmax(average_distances)

@@ -70,6 +70,8 @@
     <ScalarVariable name="steer_angle_s" valueReference="13" variability="continuous" causality="input">
       <Real start ="0.0" />
     </ScalarVariable>
+
+    
   </ModelVariables>
 
 

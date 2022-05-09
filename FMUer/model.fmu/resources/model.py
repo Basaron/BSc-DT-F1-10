@@ -55,7 +55,7 @@ class Model:
 
         #references to the inputs and outputs 
         self.references_input = [2, 3]
-        self.references_output = [4, 5, 8]
+        self.references_output = [4, 5, 6, 7, 8]
 
         #getting the values 
         input = self.fmi2GetReal(self.references_input)
@@ -160,9 +160,6 @@ class Model:
         rear_val = self.g * self.l_r - self.acceleration * self.h_cg
         front_val = self.g * self.l_f + self.acceleration * self.h_cg
 
-
-        vel_ratio = 0
-        first_term = 0
 
         #if velocity is zero
         if self.velocity == 0:
