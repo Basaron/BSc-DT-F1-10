@@ -20,15 +20,13 @@
         <ScalarVariable name="angle" valueReference="21" variability="continuous" causality="output">
             <Real/>
         </ScalarVariable>
-
-        <ScalarVariable name="acceleration" valueReference="22" variability="discrete" causality="input">
+        <ScalarVariable name="acceleration" valueReference="22" variability="continuous" causality="input">
             <Real start="0.0"/>
         </ScalarVariable>
 
-        <ScalarVariable name="steer_angle_vel" valueReference="23" variability="discrete" causality="input">
+        <ScalarVariable name="steer_angle_vel" valueReference="23" variability="continuous" causality="input">
             <Real start="0.0"/>
         </ScalarVariable>
-
 
         <ScalarVariable name="config.hostname" valueReference="0" variability="fixed" causality="parameter" initial="exact">
             <String start="localhost"/>
@@ -45,7 +43,7 @@
 
 
         <ScalarVariable name="config.routingkey" valueReference="4" variability="fixed" causality="parameter" initial="exact">
-            <String start="fmu.targets"/>
+            <String start="fmu.input.*"/>
         </ScalarVariable>
 
         <ScalarVariable name="config.communicationtimeout" valueReference="5" variability="fixed" causality="parameter" description="Network read time out in seconds" initial="exact">

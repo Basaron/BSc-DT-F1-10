@@ -10,14 +10,15 @@ class Controller:
         
         #constants
         PI = 3.1456
-        max_distance = 25
+        max_distance = 15
+        max_angle = PI/2
         self.max_accel = 7.51
         self.max_decel = 8.26
         self.max_speed = 7.0
         self.max_steering_vel = 3.2 
         self.max_steering_angle = 0.4189
-        self.angle_converter = self.max_steering_angle / (PI/2)
-        self.velocity_converter = self.max_speed / max_distance
+        self.angle_normalizer = self.max_steering_angle / max_angle
+        self.velocity_normalizer = self.max_speed / max_distance
         
         #parameters
         self.desired_velocity = 0.0
@@ -153,50 +154,14 @@ class Controller:
 
     #------acceleration ------ 
     def compute_acceleration(self):
-        angle_bound = 0.3
-        offset = 1
-        # p controller proportional to distance
-            
-                
-        if self.angle > angle_bound*2 or self.angle < -angle_bound * 2:
-            self.desired_velocity = self.distance * self.velocity_converter * (1/(abs(self.desired_angle) + offset*1))
-            
-        elif self.angle > angle_bound or self.angle < -angle_bound:
-            self.desired_velocity = self.distance * self.velocity_converter * (1/(abs(self.desired_angle) + offset))
-        else:
-            self.desired_velocity = self.distance * self.velocity_converter
-        
+        # update desired velocity and normalize the distance
+        self.desired_velocity = self.distance * self.velocity_normalizer
 
-        #get difference of velocity
+        # get difference of velocity
         diff = self.desired_velocity - self.velocity
 
-        #determine acceleration or braking based on difference between velocities
-
+        # determine acceleration or braking based on difference between velocities
         self.set_accel(self.kp_speed * diff)
-
-        """
-        if self.velocity > 0:
-            if diff > 0:
-                #accelerate
-                self.set_accel(self.kp_speed * diff)
-
-            else:
-                #brake
-                self.acceleration = -self.max_decel
-        
-        elif self.velocity < 0:
-            if diff > 0:
-                #brake
-                self.acceleration = self.max_decel
-            
-            else:
-                #acceleration
-                self.set_accel(self.kp_speed * diff)
-        
-        else:
-            #acceleration 
-            self.set_accel(self.kp_speed * diff)
-        """
 
 
     def set_accel(self, accel):
@@ -205,26 +170,9 @@ class Controller:
 
     #------angle velocity------
     def compute_steer_angle_vel(self):
-        angle_bound = 0.3
-        offset = 0.006*20
-           
-        if self.angle > angle_bound * 2:
-            self.desired_angle = (self.angle - offset) * self.angle_converter
-        elif self.angle < -angle_bound * 2:
-            self.desired_angle = (self.angle + offset) * self.angle_converter
-        elif self.angle > angle_bound:
-            self.desired_angle = (self.angle - offset) * self.angle_converter
-        elif self.angle < -angle_bound:
-            self.desired_angle = (self.angle + offset) * self.angle_converter
-        
-        else:
-            self.desired_angle = self.angle  * self.angle_converter
-            
-        """if (self.desired_angle > self.max_steering_angle):
-            self.desired_angle = self.max_steering_angle
-        elif (self.desired_angle < -self.max_steering_angle):
-            self.desired_angle = -self.max_steering_angle"""
-            
+        # update desired angle and normalize the angle
+        self.desired_angle = self.angle  * self.angle_normalizer
+
         #difference between angles
         diff_steer_angle = self.desired_angle - self.steer_angle
 
