@@ -19,29 +19,30 @@ class DummyMQ():
         self.rate = rospy.Rate(100) # 10hz
         
         #rabbitmq
-        self.connectionToRobot = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3'))
-        self.connectionFromRobot = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3'))
+        self.credentials = pika.PlainCredentials('guest', 'guest')
+        self.connectionToBroker = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3', port=5672, credentials=self.credentials))
+        self.connectionFromBroker = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3', port=5672, credentials=self.credentials))
 
         #channel to the robot
-        self.channelToRobot = self.connectionToFMU.channel()
-        self.channelToRobot.exchange_declare(exchange='topic_logs', exchange_type='topic')
+        self.channelToBroker = self.connectionToBroker.channel()
+        self.channelToBroker.exchange_declare(exchange='topic_logs', exchange_type='topic')
 
         #channel from the robot
-        self.channelFromRobot = self.connectionFromRobot.channel()
-        self.channelFromRobot.exchange_declare(exchange='topic_logs', exchange_type='topic')     
+        self.channelFromBroker = self.connectionFromBroker.channel()
+        self.channelFromBroker.exchange_declare(exchange='topic_logs', exchange_type='topic')     
             
-        result = self.channelFromRobot.queue_declare('RobotDummy', exclusive=True)
+        result = self.channelFromBroker.queue_declare('robot_channel', exclusive=True)
         queue_name = result.method.queue
 
 
-        self.channelFromRobot.queue_bind(
-            exchange = 'topic_logs', queue=queue_name, routing_key="robot.dummy")
+        self.channelFromBroker.queue_bind(
+            exchange = 'topic_logs', queue=queue_name, routing_key="dummy.robot")
 
         
-        self.channelFromRobot.basic_consume(
+        self.channelFromBroker.basic_consume(
             queue=queue_name, on_message_callback=self.dummy_callback, auto_ack=True)
         
-        self.channelFromRobot.start_consuming()
+        self.channelFromBroker.start_consuming()
         
 
     def dummy_callback(self, ch, method, properties, body):  
@@ -52,10 +53,10 @@ class DummyMQ():
         rostimeISO = datetime.datetime.strptime(datetime.datetime.utcfromtimestamp(rostime).isoformat(timespec='milliseconds')+'+0100', "%Y-%m-%dT%H:%M:%S.%f%z")
         
         #checking if the send channel and connection is open
-        if not self.channelToFmu or self.connectionToFMU.is_closed:
-            self.connectionToFMU = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-            self.channelToFmu = self.connectionToFMU.channel()
-            self.channelToFmu.exchange_declare(exchange='topic_logs', exchange_type='topic')
+        if not self.channelToBroker or self.connectionToBroker.is_closed:
+            self.channelToBroker = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3', port=5672, credentials=self.credentials))
+            self.channelToBroker = self.connectionToBroker.channel()
+            self.channelToBroker.exchange_declare(exchange='topic_logs', exchange_type='topic')
             
         body = json.loads(body) 
         
@@ -63,16 +64,16 @@ class DummyMQ():
         dummy = body['dummy']
 
         print(dummy)
-
         
-        routing_key = "fmu.targets"
+        routing_key = "dummy.broker"
         message = {
             'time': rostimeISO.isoformat(timespec='milliseconds'),         
             'dummy': self.dummy_data
             }
+
         self.dummy_data += 1
             
-        self.channelToFmu.basic_publish(
+        self.channelToBroker.basic_publish(
             exchange='topic_logs', routing_key=routing_key, body=json.dumps(message))
         
         
