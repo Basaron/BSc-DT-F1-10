@@ -47,13 +47,8 @@ class Controller:
             5: "kp_angle",
             6: "distance",
             7: "angle",
-            8: "desired_angle",
-
-            9: "x_s",
-            10: "y_s",
-            11: "theta_s",
-            12: "velocity_s",
-            13: "steer_angle_s",
+            8: "desired_velocity",
+            9: "desired_angle",
         }
 
         #references to the inputs and outputs 
@@ -153,7 +148,7 @@ class Controller:
         
 
         #setting the output values 
-        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel, self.desired_angle))
+        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel, self.desired_velocity, self.desired_angle))
 
         return Fmi2Status.ok
     
