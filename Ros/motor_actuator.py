@@ -35,6 +35,7 @@ class Motor():
         self.channel_fmu.basic_consume(
             queue=queue_name, on_message_callback=self.fmu_callback, auto_ack=True)
 
+        print("spinning")
         self.channel_fmu.start_consuming()
        
         

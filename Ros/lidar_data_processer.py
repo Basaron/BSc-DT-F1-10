@@ -10,11 +10,11 @@ import json
 
 import numpy as np
 
-class LidarMQ():
+class LidarDataProcesser():
     def __init__(self):
         
         #rospy
-        rospy.init_node('LidarMQ', anonymous=True)
+        rospy.init_node('LidarDataProcesser', anonymous=True)
         self.rate = rospy.Rate(100) # 10hz
         
         #rabbitmq
@@ -35,33 +35,39 @@ class LidarMQ():
 
 
         self.channelRobotLidar.queue_bind(
-            exchange = 'topic_logs', queue=queue_name, routing_key="robot.lidar")
+            exchange = 'topic_logs', queue=queue_name, routing_key="lidar.ranges")
 
         
         self.channelRobotLidar.basic_consume(
             queue=queue_name, on_message_callback=self.lidar_callback, auto_ack=True)
         
+        print("spinning")
         self.channelRobotLidar.start_consuming()
         
 
-    def lidar_data_processing(self, distances, points_for_average=50):
+    # Function takes ranges from a lidar scan, and uses averaging to find 
+    # the angle which is the furthest away based on the average, 
+    # and the corresponding distance
+    def lidar_data_averageing(self, ranges, points_for_average=50):
 
             number_of_scans = 540
+
+            # distance between each scan in radians
             phi = np.pi/number_of_scans 
 
-            average_distances = np.zeros(540)
+            average_ranges = np.zeros(540)
             half = int(points_for_average/2)
 
             for i in range(half):
-                distances[i] = distances[half]
-                distances[i + 565] = distances[565]
+                ranges[i] = ranges[half]
+                ranges[i + 565] = ranges[565]
             
             for i in range(540):
-                average_distances[i] = np.average(distances[i: i + points_for_average])
+                average_ranges[i] = np.average(ranges[i: i + points_for_average])
                 
             # find the longest distance and corresponding angle
-            idx = np.argmax(average_distances)
-            distance = average_distances[idx]
+            idx = np.argmax(average_ranges)
+            distance = average_ranges[idx]
             angle = phi*idx - np.pi/2
 
             return distance, angle
@@ -81,12 +87,15 @@ class LidarMQ():
             
         body = json.loads(body) 
         
-        #input for desired scan data has to be number remember to change
-        distances = body['scan'][245: 835]
+        # Only using scans in the filed of view at the front of the car 
+        # (so that we don't try to drive to somwhere behind us)
+        ranges = body['ranges'][245: 835]
 
-        distance, angle = self.lidar_data_processing(distances)
+        distance, angle = self.lidar_data_averageing(ranges)
                  
-        routing_key = "fmu.targets"
+        print(distance, angle)
+        
+        routing_key = "fmu.inputs.targets"
         message = {
             'time': rostimeISO.isoformat(timespec='milliseconds'),         
             'distance': distance,
@@ -99,7 +108,7 @@ class LidarMQ():
         
 if __name__ == '__main__': 
     try: 
-        LidarMQ()
+        LidarDataProcesser()
 
     except rospy.ROSInterruptException:
         pass

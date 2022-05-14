@@ -53,7 +53,7 @@ class Odom():
         #rabbitmq
         self.channel_odom = self.connection_odom.channel()
         self.channel_odom.exchange_declare(exchange='topic_logs', exchange_type='topic')
-
+        print("spinning")
         rospy.spin()
         
 

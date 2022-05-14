@@ -23,9 +23,10 @@ class DummyMQ():
         self.connectionToBroker = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3', port=5672, credentials=self.credentials))
         self.connectionFromBroker = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3', port=5672, credentials=self.credentials))
 
-        #channel to the robot
         self.channelToBroker = self.connectionToBroker.channel()
         self.channelToBroker.exchange_declare(exchange='topic_logs', exchange_type='topic')
+
+        
 
         #channel from the robot
         self.channelFromBroker = self.connectionFromBroker.channel()
@@ -41,7 +42,23 @@ class DummyMQ():
         
         self.channelFromBroker.basic_consume(
             queue=queue_name, on_message_callback=self.dummy_callback, auto_ack=True)
+
+        rt = rospy.get_rostime()
+        rostime = rt.secs + rt.nsecs * 1e-09
+        rostimeISO = datetime.datetime.strptime(datetime.datetime.utcfromtimestamp(rostime).isoformat(timespec='milliseconds')+'+0100', "%Y-%m-%dT%H:%M:%S.%f%z")
         
+        routing_key = "dummy.broker"
+        message = {
+            'time': rostimeISO.isoformat(timespec='milliseconds'),         
+            'dummy': self.dummy_data
+            }
+
+        self.dummy_data += 1
+            
+        self.channelToBroker.basic_publish(
+            exchange='topic_logs', routing_key=routing_key, body=json.dumps(message))
+        
+        print("spinning")
         self.channelFromBroker.start_consuming()
         
 
