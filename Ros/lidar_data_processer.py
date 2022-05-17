@@ -18,9 +18,14 @@ class LidarDataProcesser():
         self.rate = rospy.Rate(100) # 10hz
         
         #rabbitmq
+        
+        self.credentials = pika.PlainCredentials('guest', 'guest')
+        self.connectionToFMU = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
+        self.connectionFromRobot = pika.BlockingConnection(pika.ConnectionParameters(host='192.168.1.3', port=5672, credentials=self.credentials))
+        """
         self.connectionToFMU = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
         self.connectionFromRobot = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-
+        """
         #channel to the FMU
         self.channelToFmu = self.connectionToFMU.channel()
         self.channelToFmu.exchange_declare(exchange='topic_logs', exchange_type='topic')
@@ -95,11 +100,11 @@ class LidarDataProcesser():
                  
         print(distance, angle)
         
-        routing_key = "fmu.inputs.targets"
+        routing_key = "fmu.input.targets"
         message = {
             'time': rostimeISO.isoformat(timespec='milliseconds'),         
             'distance': distance,
-            'angle': angle,
+            'angle': angle
             }
             
         self.channelToFmu.basic_publish(

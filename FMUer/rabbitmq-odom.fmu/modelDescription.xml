@@ -31,7 +31,7 @@
         </ScalarVariable>
         
         <ScalarVariable name="config.hostname" valueReference="0" variability="fixed" causality="parameter" initial="exact">
-            <String start="localhost"/>
+            <String start="localhost"/> <!--or 192.168.1.3-->
         </ScalarVariable>
         <ScalarVariable name="config.port" valueReference="1" variability="fixed" causality="parameter" initial="exact">
             <Integer start="5672"/>
@@ -45,7 +45,7 @@
 
 
         <ScalarVariable name="config.routingkey" valueReference="4" variability="fixed" causality="parameter" initial="exact">
-            <String start="fmu.input.*"/>
+            <String start="fmu.input.odom"/>
         </ScalarVariable>
 
         <ScalarVariable name="config.communicationtimeout" valueReference="5" variability="fixed" causality="parameter" description="Network read time out in seconds" initial="exact">

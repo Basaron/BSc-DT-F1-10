@@ -47,13 +47,27 @@
     <ScalarVariable name="y_p" valueReference="8" variability="discrete" causality="output" initial="approx">
       <Real start="0.0"/>
     </ScalarVariable>
-
+    <!--Index of variable = "10"-->
+    <ScalarVariable name="steer_angle_p" valueReference="9" variability="discrete" causality="output" initial="approx">
+      <Real start="0.0"/>
+    </ScalarVariable>
+    <!--Index of variable = "11"-->
+    <ScalarVariable name="velocity_p" valueReference="10" variability="discrete" causality="output" initial="approx">
+      <Real start="0.0"/>
+    </ScalarVariable>
+    <!--Index of variable = "12"-->
+    <ScalarVariable name="theta_p" valueReference="11" variability="discrete" causality="output" initial="approx">
+      <Real start="0.0"/>
+    </ScalarVariable>
   </ModelVariables>
 
   <ModelStructure>
     <Outputs>
-      <Unknown index="9" dependencies="" />
       <Unknown index="8" dependencies="" />
+      <Unknown index="9" dependencies="" />
+      <Unknown index="10" dependencies="" />
+      <Unknown index="11" dependencies="" />
+      <Unknown index="12" dependencies="" />
     </Outputs>
   </ModelStructure>
 </fmiModelDescription>

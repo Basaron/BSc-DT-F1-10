@@ -10,17 +10,96 @@ from scipy.integrate import odeint
 class Model:
     def __init__(self) -> None:
 
+        #constants
+        self.g = 9.82                #gravity in m/s²
+        self.wheelbase = 0.3302
+        self.friction_coeff = 0.523
+        self.h_cg = 0.074 
+        self.l_f = 0.15875 
+        self.l_r = 0.17145 
+        self.cs_f = 4.718
+        self.cs_r = 5.4562
+        self.mass = 3.47
+        self.I_z = 0.04712
+        self.max_steering_angle = 0.4189
+        self.max_speed = 7.
+
+        # measured states
         self.x_s = 0.
         self.y_s = 0.
         self.steer_angle_s = 0.
         self.velocity_s = 0.
         self.theta_s = 0.
-        self.u = [0., 0.]
+
+        # inputs
         self.acceleration = 0.
         self.steer_angel_velocity = 0.
 
+        # output predicted states
+        self.x_p = 0.
+        self.y_p = 0.
+        self.steer_angle_p = 0.
+        self.velocity_p = 0.
+        self.theta_p = 0.
+
+        #states
+        #x0 = x-position in a global coordinate system
+        #x1 = y-position in a global coordinate system
+        #x2 = steering angle of front wheels
+        #x3 = velocity in x-direction
+        #x4 = yaw angle
+        #x5 = yaw rate
+        #x6 = slip angle at vehicle center
+
+        #inputs
+        #u0 = steering angle velocity of front wheels
+        #u1 = longitudinal acceleration
+
+        """ Continous state dynamics; dot(x) =  f(x,u) """
+        self.f = lambda x, t, u: np.array([x[3]*math.cos(x[6] + x[4]), 
+            x[3]*math.sin(x[6] + x[4]), 
+            u[0], 
+            u[1], 
+            x[5], 
+            0, 
+            0])
+        """
+        f = lambda x, t, u: np.array([x[3]*math.cos(x[6] + x[4]), 
+            x[3]*math.sin(x[6] + x[4]), 
+            u[0], 
+            u[1], 
+            x[5], 
+            (self.friction_coeff * self.mass / (self.I_z * self.wheelbase)) * \
+            (self.l_f * self.cs_f * x[2] * (self.g * self.l_r - u[1] * self.h_cg) + x[6] 
+            * (self.l_r * self.cs_r * (self.g * self.l_f + u[1] * self.h_cg) - self.l_f * self.cs_f * (self.g * self.l_r - u[1] * self.h_cg)) 
+            - (x[5] / x[3]) * (self.l_f**2 * self.cs_f * (self.g * self.l_r - u[1] * self.h_cg) + self.l_r**2 * self.cs_r * (self.g * self.l_f + u[1] * self.h_cg))), 
+            (self.friction_coeff / (x[3] * (self.l_r + self.l_f))) * (self.cs_f * x[2] * (self.g * self.l_r - u[1] * self.h_cg) - x[6] * 
+            (self.cs_r * (self.g * self.l_f + u[1] * self.h_cg) + self.cs_f * (self.g * self.l_r - u[1] * self.h_cg)) +  (x[5] / x[3]) * (self.cs_r * self.l_r * 
+            (self.g * self.l_f + u[1] * self.h_cg) - self.cs_f * self.l_f * (self.g * self.l_r - u[1] * self.h_cg))) - x[5]])
+        """
+
+
+        self.h = lambda x: x[0:5]
+
+        self.n = 7
+        self.G = np.eye(self.n)
+        self.Q = np.diag([0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1])
+        self.R = np.diag([0.04*0.04, 0.04*0.04, 0.04*0.04, 0.04*0.04, 0.04*0.04])
+        self.x0_est = np.array([0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01])
+        self.P0 = np.diag([0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1])
+        self.Q = self.Q + np.diag([10**-4, 10**-4, 10**-9, 10**-9, 10**-9, 10**-9, 10**-9])
+
+        # Sigma Point Kalman Filterinput[1][0]
+        self.alpha = 0.0001
+        self.kappa = 0.0
+        self.beta = 2.0
+        self.sut = SUT(self.alpha, self.beta, self.kappa, self.n)
+        self.filter = SPKF(self.f,self.h,self.G,self.Q,self.R,self.x0_est,self.P0,self.sut,variant=0)  # 0 - normal UKF, 1 - IUKF, 2 - UKFz
+        self.meas = [0, 0, 0, 0, 0]
+        self.u = [0, 0]
+
         self.reference_to_attribute = {
-            0: "x_s",           
+            0: "x_s",
             1: "y_s",
             2: "steer_angle_s",
             3: "velocity_s",
@@ -29,6 +108,9 @@ class Model:
             6: "steer_angel_velocity",
             7: "x_p",
             8: "y_p",
+            9: "steer_angle_p",
+            10: "velocity_p",
+            11: "theta_p"
         }
 
         #references to the inputs and outputs 
@@ -43,51 +125,25 @@ class Model:
         self.steer_angle_s = input[1][2]
         self.velocity_s = input[1][3]
         self.theta_s = input[1][4]
-        self.meas = [self.x_s, self.y_s, self.steer_angle_s, self.velocity_s, self.theta_s]
-
         self.acceleration = input[1][5]
         self.steer_angel_velocity = input[1][6]
-        self.u = [self.acceleration, self.steer_angel_velocity]
-
-        f = lambda x, t, u: np.array([x[3]*math.cos(x[6] + x[4]), 
-            x[3]*math.sin(x[6] + x[4]), 
-            u[0], 
-            u[1], 
-            x[5], 
-            0, 
-            0])
-
-        h = lambda x: x[0:5]
-
-        n = 7
-        G = np.eye(n)
-        Q = np.diag([0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1])
-        R = np.diag([0.04*0.04, 0.04*0.04, 0.04*0.04, 0.04*0.04, 0.04*0.04])
-        x0 = np.array([0, 0, 0, 0, 0, 0, 0 ])
-        x0_est = np.array([0, 0, 0, 0, 0, 0, 0])
-        P0 = np.diag([0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1, 0.1*0.1, 0.01*0.01, 0.1*0.1])
-        Q = Q + np.diag([10**-4, 10**-4, 10**-9, 10**-9, 10**-9, 10**-9, 10**-9])
-
-        self.x_p = None
-        self.P = None
-    
-
-        # Sigma Point Kalman Filterinput[1][0]
-        alpha = 0.0001
-        kappa = 0.0
-        beta = 2.0
-        sut = SUT(alpha, beta, kappa, n)
-        self.filter = SPKF(f,h,G,Q,R,x0_est,P0,sut,variant=0)  # 0 - normal UKF, 1 - IUKF, 2 - UKFz
-
+        
     
     #------PROCESS IN TIME------ 
     def fmi2DoStep(self, current_time, step_size, no_step_prior):
+        self.meas = [self.x_s, self.y_s, self.steer_angle_s, self.velocity_s, self.theta_s]
+        self.u = [self.steer_angel_velocity, self.acceleration]
+        self.filter.predict(self.u, step_size,1)
+        self.filter.update(self.meas,0)
 
-        self.x_p, self.P = self.filter.predict(self.u, step_size,1)
-        self.filter.update(self.meas,1)
+        self.x_p = self.filter.x[0]
+        self.y_p = self.filter.x[1]
+        self.steer_angle_p = self.filter.x[2] 
+        self.velocity_p = self.filter.x[3]
+        self.theta_p = self.filter.x[4]
         
         #updating the output values
-        self.fmi2SetReal(self.references_output, (self.x_p[0], self.x_p[1]))
+        self.fmi2SetReal(self.references_output, (self.x_p, self.y_p, self.steer_angle_p, self.velocity_p, self.theta_p))
 
         return Fmi2Status.ok
 
@@ -155,8 +211,7 @@ class Model:
         return Fmi2Status.ok, values
 
 
-    
-    #------UPDATING THE STATE------
+  
 class SUT: 
     """ Scaled Unscented Transform """
 
@@ -225,7 +280,7 @@ class SPKF:
     def predict(self,u,dt,simple = 1):
 
         S = self.spt.create_points(self.x, self.P)
-        # TODO: pass f1 and f2 to swich based of off velocity state
+  
         # propagate the points 
         Sp = [ ]
         for i in range(len(S)):
@@ -248,11 +303,10 @@ class SPKF:
 
         self.x = Xm
         self.P = Cx
-        return self.x, self.P
 
-    def update(self,x_s,meas,var=0):
+    def update(self,meas,var=0):
 
-        X = self.spt.create_points(x_s, self.P)
+        X = self.spt.create_points(self.x, self.P)
         
         Y = [ ]
         for i in range(2*self.n+1):
@@ -293,7 +347,6 @@ class SPKF:
             IKH =  np.eye(self.n) - K@self.H
             self.P = IKH@self.P@IKH.transpose()+K@self.R@K.transpose() # Joseph Form
 ##########################################################
-
 
 #------Represents the status of the FMU or the results of function calls------
 class Fmi2Status:

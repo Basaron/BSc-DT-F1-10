@@ -7,7 +7,7 @@ import json
 import math
 import datetime
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float32
+from std_msgs.msg import Float64
 
 #for rappidmq
 import pika
@@ -40,7 +40,7 @@ class Odom():
 
         self.rate = rospy.Rate(10) # 100hz
         self.odom_sub=rospy.Subscriber('odom',Odometry,self.odom_callback)
-        self.steer_angle_sub=rospy.Subscriber('steer_angle',Float32,self.steer_angle_callback)
+        self.steer_angle_sub=rospy.Subscriber('steer_angle',Float64,self.steer_angle_callback)
 
         # state variables
         self.x = 0

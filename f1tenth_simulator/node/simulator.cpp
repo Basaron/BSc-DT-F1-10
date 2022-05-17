@@ -11,11 +11,13 @@
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Int32MultiArray.h>
+#include <std_msgs/Float64.h>
 
 #include <sensor_msgs/LaserScan.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PointStamped.h>
+
 
 #include "f1tenth_simulator/pose_2d.hpp"
 #include "f1tenth_simulator/ackermann_kinematics.hpp"
@@ -87,6 +89,7 @@ private:
     bool pub_gt_pose;
     ros::Publisher scan_pub;
     ros::Publisher pose_pub;
+    ros::Publisher steer_angle_pub;
     ros::Publisher odom_pub;
     ros::Publisher imu_pub;
 
@@ -207,6 +210,7 @@ public:
 
         // Make a publisher for odometry messages
         odom_pub = n.advertise<nav_msgs::Odometry>(odom_topic, 1);
+        steer_angle_pub = n.advertise<std_msgs::Float64>("/steer_angle", 1);
 
         // Make a publisher for IMU messages
         imu_pub = n.advertise<sensor_msgs::Imu>(imu_topic, 1);
@@ -216,6 +220,7 @@ public:
 
         // Make a publisher for ground truth pose
         pose_pub = n.advertise<geometry_msgs::PoseStamped>(gt_pose_topic, 1);
+        
 
         // Start a timer to output the pose
         update_pose_timer = n.createTimer(ros::Duration(update_pose_rate), &RacecarSimulator::update_pose, this);
@@ -687,6 +692,9 @@ public:
             odom.twist.twist.linear.x = state.velocity;
             odom.twist.twist.angular.z = state.angular_velocity;
             odom_pub.publish(odom);
+            std_msgs::Float64 msg;
+            msg.data = state.steer_angle;
+            steer_angle_pub.publish(msg);
         }
 
         void pub_imu(ros::Time timestamp) {
