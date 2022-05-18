@@ -98,7 +98,7 @@ class LidarDataProcesser():
 
         distance, angle = self.lidar_data_averageing(ranges)
                  
-        print(distance, angle)
+        print(len(body['ranges']))
         
         routing_key = "fmu.input.targets"
         message = {

@@ -370,19 +370,3 @@ class Fmi2Status:
     pending = 5
 
 
-
-#------TEST CASES------
-"""
-if __name__ == "__main__":
-    m = Model()
-    m.acceleration = 3.0
-    m.steer_angle_vel = 0.0
-    m.fmi2DoStep(0.0, 4.0, False)
-    print(m.x)
-    print(m.y)
-    print(m.theta)
-    print(m.angular_velocity)
-    print(m.slip_angle)
-    print(m.velocity)
-    print(m.steer_angle)
-"""

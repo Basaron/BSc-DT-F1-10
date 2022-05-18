@@ -21,9 +21,6 @@ class Controller:
         self.velocity_normalizer = self.max_speed / max_distance
         
         #parameters
-        self.desired_velocity = 0.0
-        self.desired_angle = 0.0
-
         self.kp_speed = 0.1       #speed proportional gain
         self.kp_angle = 1.        #angle proportional gain 
 
@@ -36,6 +33,8 @@ class Controller:
         #outputs 
         self.acceleration = 0.0 
         self.steer_angle_vel = 0.0
+        self.desired_velocity = 0.0
+        self.desired_steer_angle = 0.0
 
         #reference to xml file 
         self.reference_to_attribute = {
@@ -48,12 +47,12 @@ class Controller:
             6: "distance",
             7: "angle",
             8: "desired_velocity",
-            9: "desired_angle",
+            9: "desired_steer_angle",
         }
 
         #references to the inputs and outputs 
         self.references_input = [0, 1, 6, 7]
-        self.references_output = [2, 3, 8]
+        self.references_output = [2, 3, 8, 9]
         self.references_parameter = [4, 5]
 
         #getting the values 
@@ -148,7 +147,7 @@ class Controller:
         
 
         #setting the output values 
-        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel, self.desired_velocity, self.desired_angle))
+        self.fmi2SetReal(self.references_output, (self.acceleration, self.steer_angle_vel, self.desired_velocity, self.desired_steer_angle))
 
         return Fmi2Status.ok
     
@@ -172,10 +171,10 @@ class Controller:
     #------angle velocity------
     def compute_steer_angle_vel(self):
         # update desired angle and normalize the angle
-        self.desired_angle = self.angle  * self.angle_normalizer
+        self.desired_steer_angle = self.angle  * self.angle_normalizer
 
         #difference between angles
-        diff_steer_angle = self.desired_angle - self.steer_angle
+        diff_steer_angle = self.desired_steer_angle - self.steer_angle
 
         self.set_steer_angle_vel(diff_steer_angle * self.kp_angle)
 

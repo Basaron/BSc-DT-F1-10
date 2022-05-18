@@ -41,6 +41,9 @@ class Model:
         self.steer_angle = 0.0      #output
 
 
+        self.desired_velocity = 0.
+        self.desired_steer_angle = 0.
+
         self.reference_to_attribute = {
             0: "threshold",
             1: "error", 
@@ -51,10 +54,12 @@ class Model:
             6: "x",
             7: "y",
             8: "theta",
+            9: "desired_velocity",
+            10: "desired_steer_angle"
         }
 
         #references to the inputs and outputs 
-        self.references_input = [2, 3]
+        self.references_input = [2, 3, 9, 10]
         self.references_output = [4, 5, 6, 7, 8]
 
         #getting the values 

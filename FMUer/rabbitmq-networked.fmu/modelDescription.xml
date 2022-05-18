@@ -14,22 +14,30 @@
 
     <DefaultExperiment startTime="0.0" stopTime="16.0" stepSize="0.01"/>
     <ModelVariables>
-        <ScalarVariable name="distance" valueReference="20" variability="continuous" causality="output">
+        <ScalarVariable name="x_s" valueReference="20" variability="continuous" causality="output">
             <Real/>
         </ScalarVariable>
-        <ScalarVariable name="angle" valueReference="21" variability="continuous" causality="output">
+        <ScalarVariable name="y_s" valueReference="21" variability="continuous" causality="output">
             <Real/>
         </ScalarVariable>
-        <ScalarVariable name="acceleration" valueReference="22" variability="continuous" causality="input">
+       <ScalarVariable name="theta_s" valueReference="22" variability="continuous" causality="output">
+            <Real/>
+        </ScalarVariable>
+        <ScalarVariable name="velocity_s" valueReference="23" variability="continuous" causality="output">
+            <Real/>
+        </ScalarVariable>
+       <ScalarVariable name="steer_angle_s" valueReference="24" variability="continuous" causality="output">
+            <Real/>
+        </ScalarVariable>
+        <ScalarVariable name="desired_velocity" valueReference="25" variability="continuous" causality="input">
             <Real start="0.0"/>
         </ScalarVariable>
-
-        <ScalarVariable name="steer_angle_vel" valueReference="23" variability="continuous" causality="input">
+        <ScalarVariable name="desired_steer_angle" valueReference="26" variability="continuous" causality="input">
             <Real start="0.0"/>
         </ScalarVariable>
-
+        
         <ScalarVariable name="config.hostname" valueReference="0" variability="fixed" causality="parameter" initial="exact">
-            <String start="localhost"/> <!--or localhost-->
+            <String start="localhost"/>
         </ScalarVariable>
         <ScalarVariable name="config.port" valueReference="1" variability="fixed" causality="parameter" initial="exact">
             <Integer start="5672"/>
@@ -43,7 +51,7 @@
 
 
         <ScalarVariable name="config.routingkey" valueReference="4" variability="fixed" causality="parameter" initial="exact">
-            <String start="fmu.input.targets"/>
+            <String start="fmu.input.odom"/>
         </ScalarVariable>
 
         <ScalarVariable name="config.communicationtimeout" valueReference="5" variability="fixed" causality="parameter" description="Network read time out in seconds" initial="exact">
@@ -71,7 +79,7 @@
             <String start="direct"/>
         </ScalarVariable>
         <ScalarVariable name="config.routingkey.from_cosim" valueReference="13" variability="fixed" causality="parameter" initial="exact">
-            <String start="fmu.output"/>
+            <String start="fmu.output.robot"/>
         </ScalarVariable>
         
         
@@ -80,6 +88,9 @@
         <Outputs>
             <Unknown index="1"/>
             <Unknown index="2"/>
+            <Unknown index="3"/>
+            <Unknown index="4"/>
+            <Unknown index="5"/>
         </Outputs>
     </ModelStructure>
 

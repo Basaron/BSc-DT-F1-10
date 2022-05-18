@@ -29,9 +29,15 @@
        <ScalarVariable name="steer_angle_s" valueReference="24" variability="continuous" causality="output">
             <Real/>
         </ScalarVariable>
+        <ScalarVariable name="desired_velocity" valueReference="25" variability="continuous" causality="input">
+            <Real start="0.0"/>
+        </ScalarVariable>
+        <ScalarVariable name="desired_steer_angle" valueReference="26" variability="continuous" causality="input">
+            <Real start="0.0"/>
+        </ScalarVariable>
         
         <ScalarVariable name="config.hostname" valueReference="0" variability="fixed" causality="parameter" initial="exact">
-            <String start="localhost"/> <!--or 192.168.1.3-->
+            <String start="localhost"/>
         </ScalarVariable>
         <ScalarVariable name="config.port" valueReference="1" variability="fixed" causality="parameter" initial="exact">
             <Integer start="5672"/>
@@ -73,7 +79,7 @@
             <String start="direct"/>
         </ScalarVariable>
         <ScalarVariable name="config.routingkey.from_cosim" valueReference="13" variability="fixed" causality="parameter" initial="exact">
-            <String start="fmu.output"/>
+            <String start="fmu.output.robot"/>
         </ScalarVariable>
         
         
