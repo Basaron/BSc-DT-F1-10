@@ -20,42 +20,46 @@ In order to use the code in this repository, follow the steps:
 
 ## Usage
 For running the digital twin, five terminals are needed. 
-The first terminal is needed to launch the simulator for the F1Tenth. This is done with the command:
+
+
+Terminal 1: Launch the simulator for the F1Tenth
 ```bash
 …\catkin_ws $ roslaunch f1tenth_simulator simulator.launch
 ```
 
-The second terminal shall initialize the 
+Terminal 2: Initialize the LIDAR sensor
 ```bash
 …\ros_nodes $ python3 lidar_sensor.py
 ```
 
-Third terminal
+Terminal 3: Initialize the script that processes the LIDAR data
 ```bash
 …\ros_nodes $ python3 lidar_data_processer.py
 ```
 
-Fourth terminal
+Terminal 4: Initialize the odometry sensor
 ```bash
 …\ros_nodes $ python3 odom_sensor.py
 ```
 
-Fifth terminal
+Terminal 5: Run the controller
 ```bash
 …\ros_nodes $ python3 moter_actuator.py
 ```
 
-Then go to INTO CPS and open the f1tenth_intoCPS project. Here it will now be possible to run the digital twin setup from there cosim tab
-
-
-
+To run the simulation, go into the INTO-CPS application and open the f1tenth_intoCPS project. In the application, it is possible to configure the project setup e.g. determine simulation time or step size. 
 
 ### Authors and Contributors 
 Bastian Aron Kramer
+
 GitHub: https://github.com/Basaron
 
+
 Emil Chao Hu
+
 GitHub: https://github.com/emilhu20
 
+
 Malthe Tøttrup Birkebæk
+
 GitHub: https://github.com/MaltheT/MaltheT
